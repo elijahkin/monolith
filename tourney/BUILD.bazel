@@ -1,6 +1,13 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "contracts",
+    hdrs = [
+        "contracts.hpp",
+    ],
+)
 
 cc_library(
     name = "chess_state",
@@ -10,12 +17,8 @@ cc_library(
     hdrs = [
         "game_states/chess_state.hpp",
     ],
-)
-
-cc_library(
-    name = "perft",
-    hdrs = [
-        "tree_searches/perft.hpp",
+    deps = [
+        ":contracts",
     ],
 )
 
@@ -25,7 +28,47 @@ cc_test(
     srcs = ["game_states/chess_state_test.cpp"],
     deps = [
         ":chess_state",
-        ":perft",
         GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "tictactoe_state",
+    hdrs = [
+        "game_states/tictactoe_state.hpp",
+    ],
+    deps = [
+        ":contracts",
+    ],
+)
+
+cc_library(
+    name = "human_agent",
+    hdrs = [
+        "agents/human_agent.hpp",
+    ],
+    deps = [
+        ":contracts",
+    ],
+)
+
+cc_library(
+    name = "minimax_agent",
+    hdrs = [
+        "agents/minimax_agent.hpp",
+    ],
+    deps = [
+        ":contracts",
+    ],
+)
+
+cc_binary(
+    name = "cli_chess",
+    srcs = ["cli_chess.cpp"],
+    deps = [
+        ":chess_state",
+        ":contracts",
+        ":human_agent",
+        ":minimax_agent",
     ],
 )

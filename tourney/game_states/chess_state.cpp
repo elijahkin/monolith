@@ -1,8 +1,12 @@
 #include "chess_state.hpp"
 
+#include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <regex>
+#include <string>
 #include <vector>
 
 ChessState::AttackTables ChessState::compute_attack_tables() {
@@ -230,7 +234,6 @@ std::vector<ChessState::Move> ChessState::legal_moves() const {
   std::vector<Move> result;
   Color us = side_to_move_;
 
-  // If the move puts us in check, it's not legal
   for (auto& m : candidates) {
     MoveUndo undo = const_cast<ChessState*>(this)->make_move(m);
     int king_sq =
@@ -252,14 +255,12 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
   Bitboard from_bb = square_bb(m.from);
   Bitboard to_bb = square_bb(m.to);
 
-  // Store undo information
   MoveUndo undo;
   undo.old_castling_rights = castling_rights_;
   undo.old_en_passant_square = en_passant_square_;
   undo.old_halfmove_clock = halfmove_clock_;
   undo.captured_piece = PieceType::kNone;
 
-  // Find the piece being moved
   PieceType pt = PieceType::kNone;
   for (int i = 1; i <= 6; ++i) {
     if (pieces_[static_cast<size_t>(i)] & from_bb) {
@@ -268,7 +269,6 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
     }
   }
 
-  // Handle captures
   for (int i = 1; i <= 5; ++i) {
     if (pieces_[static_cast<size_t>(i)] & to_bb & them()) {
       undo.captured_piece = static_cast<PieceType>(i);
@@ -278,7 +278,6 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
     }
   }
 
-  // Handle en passant
   if (pt == PieceType::kPawn && m.to == en_passant_square_) {
     int ep_pawn_sq = en_passant_square_ + (is_white ? -8 : 8);
     pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
@@ -286,17 +285,14 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
     undo.captured_piece = PieceType::kPawn;
   }
 
-  // Move the piece
   pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
   colors_[static_cast<size_t>(side_to_move_)] ^= from_bb | to_bb;
 
-  // Handle promotion
   if (m.promotion != PieceType::kNone) {
     pieces_[static_cast<size_t>(PieceType::kPawn)] ^= to_bb;
     pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
   }
 
-  // Handle castling (move rook)
   if (pt == PieceType::kKing) {
     if (m.from == square(File::E, Rank::R1) &&
         m.to == square(File::G, Rank::R1)) {
@@ -325,7 +321,6 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
     }
   }
 
-  // Update castling rights
   uint8_t clear_mask = 0;
   if (m.from == 0 || m.to == 0) clear_mask |= 2;
   if (m.from == 7 || m.to == 7) clear_mask |= 1;
@@ -335,21 +330,18 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
   if (m.from == 60) clear_mask |= 12;
   castling_rights_ &= ~clear_mask;
 
-  // Update en passant square
   if (pt == PieceType::kPawn && (m.to - m.from == 16 || m.to - m.from == -16)) {
     en_passant_square_ = (m.from + m.to) / 2;
   } else {
     en_passant_square_ = -1;
   }
 
-  // Update halfmove clock
   if (pt == PieceType::kPawn || undo.captured_piece != PieceType::kNone) {
     halfmove_clock_ = 0;
   } else {
     ++halfmove_clock_;
   }
 
-  // Update side to move and fullmove number
   if (is_white) {
     ++fullmove_number_;
   }
@@ -359,21 +351,18 @@ ChessState::MoveUndo ChessState::make_move(Move m) {
 }
 
 void ChessState::unmake_move(Move m, const MoveUndo& undo) {
-  // Toggle side to move first
-  bool is_white = side_to_move_ == Color::kBlack;  // Opposite after toggle
+  bool is_white = side_to_move_ == Color::kBlack;
   side_to_move_ = static_cast<Color>(1 - static_cast<size_t>(side_to_move_));
 
   Bitboard from_bb = square_bb(m.from);
   Bitboard to_bb = square_bb(m.to);
 
-  // Find the piece that was moved
   PieceType pt = PieceType::kNone;
   for (int i = 1; i <= 6; ++i) {
     if (pieces_[static_cast<size_t>(i)] & to_bb) {
-      // After promotion, to_bb has the promoting piece type
       if (m.promotion != PieceType::kNone &&
           i == static_cast<int>(m.promotion)) {
-        pt = PieceType::kPawn;  // Was originally a pawn
+        pt = PieceType::kPawn;
         break;
       } else if (m.promotion == PieceType::kNone) {
         pt = static_cast<PieceType>(i);
@@ -382,31 +371,25 @@ void ChessState::unmake_move(Move m, const MoveUndo& undo) {
     }
   }
 
-  // Reverse the piece move
   pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
   colors_[static_cast<size_t>(side_to_move_)] ^= from_bb | to_bb;
 
-  // Handle promotion reversal
   if (m.promotion != PieceType::kNone) {
     pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
     pieces_[static_cast<size_t>(PieceType::kPawn)] ^= to_bb;
   }
 
-  // Restore captured piece
   if (undo.captured_piece != PieceType::kNone) {
     if (pt == PieceType::kPawn && m.to == undo.old_en_passant_square) {
-      // En passant: restore pawn to its original square
       int ep_pawn_sq = undo.old_en_passant_square + (is_white ? -8 : 8);
       pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
       colors_[1 - static_cast<size_t>(side_to_move_)] ^= square_bb(ep_pawn_sq);
     } else {
-      // Normal capture: restore piece to destination square
       pieces_[static_cast<size_t>(undo.captured_piece)] ^= to_bb;
       colors_[1 - static_cast<size_t>(side_to_move_)] ^= to_bb;
     }
   }
 
-  // Reverse castling (unmove rook)
   if (pt == PieceType::kKing) {
     if (m.from == square(File::E, Rank::R1) &&
         m.to == square(File::G, Rank::R1)) {
@@ -435,7 +418,6 @@ void ChessState::unmake_move(Move m, const MoveUndo& undo) {
     }
   }
 
-  // Restore all state
   castling_rights_ = undo.old_castling_rights;
   en_passant_square_ = undo.old_en_passant_square;
   halfmove_clock_ = undo.old_halfmove_clock;
@@ -455,4 +437,180 @@ ChessState ChessState::initial_position() {
   s.pieces_[static_cast<size_t>(PieceType::kQueen)] = 0x0800000000000008UL;
   s.pieces_[static_cast<size_t>(PieceType::kKing)] = 0x1000000000000010UL;
   return s;
+}
+
+PieceType ChessState::piece_type_at(int sq) const {
+  Bitboard bb = square_bb(sq);
+  for (int i = 1; i <= 6; ++i) {
+    if (pieces_[static_cast<size_t>(i)] & bb) {
+      return static_cast<PieceType>(i);
+    }
+  }
+  return PieceType::kNone;
+}
+
+int ChessState::unicode_index(int sq) const {
+  Bitboard bb = square_bb(sq);
+  for (int i = 1; i <= 6; ++i) {
+    if (pieces_[static_cast<size_t>(i)] & bb) {
+      if (colors_[0] & bb) return i;
+      return i + 6;
+    }
+  }
+  return 0;
+}
+
+std::string ChessState::get_algebraic_notation(const ChessMove& move) const {
+  static constexpr std::array<char, 7> kPieceLetters = {'\0', '\0', 'N', 'B',
+                                                        'R',  'Q',  'K'};
+  std::string output;
+  output += kPieceLetters[static_cast<size_t>(piece_type_at(move.from))];
+  if (move.captured != PieceType::kNone) {
+    output += 'x';
+  }
+  output += static_cast<char>('a' + (move.to % 8));
+  output += std::to_string(1 + (move.to / 8));
+  return output;
+}
+
+void ChessState::RecordMove(const ChessMove& move) {
+  if (side_to_move_ == Color::kWhite) {
+    history_.push_back(get_algebraic_notation(move));
+  } else {
+    std::string& tmp = history_.back();
+    tmp.insert(tmp.length(), " ");
+    tmp.insert(tmp.length(), get_algebraic_notation(move));
+  }
+}
+
+void ChessState::MakeMove(const ChessMove& move) {
+  Move m{move.from, move.to, move.promotion};
+  undo_stack_.push_back(make_move(m));
+}
+
+void ChessState::UnmakeMove(const ChessMove& move) {
+  Move m{move.from, move.to, move.promotion};
+  unmake_move(m, undo_stack_.back());
+  undo_stack_.pop_back();
+}
+
+std::vector<ChessMove> ChessState::GenerateLegalMoves() const {
+  auto moves = legal_moves();
+  std::vector<ChessMove> result;
+  Bitboard them_bb = them();
+  for (const auto& m : moves) {
+    ChessMove cm;
+    cm.from = m.from;
+    cm.to = m.to;
+    cm.promotion = m.promotion;
+    cm.captured = PieceType::kNone;
+    for (int i = 1; i <= 5; ++i) {
+      if (pieces_[static_cast<size_t>(i)] & square_bb(m.to) & them_bb) {
+        cm.captured = static_cast<PieceType>(i);
+        break;
+      }
+    }
+    if (cm.captured == PieceType::kNone && m.promotion == PieceType::kNone &&
+        m.to == en_passant_square_) {
+      cm.captured = PieceType::kPawn;
+    }
+    result.push_back(cm);
+  }
+  return result;
+}
+
+std::string ChessState::ToString() const {
+  static constexpr std::array<const char*, 13> kUnicodePieces = {
+      " ",      "\u2654", "\u2655", "\u2656", "\u2657", "\u2658", "\u2659",
+      "\u265a", "\u265b", "\u265c", "\u265d", "\u265e", "\u265f"};
+
+  const std::string kCursorHome = "\x1B[H";
+  const std::string kEraseScreen = "\x1B[2J";
+  const std::string kForegroundBlack = "\x1B[30m";
+  const std::string kForegroundGray = "\x1B[38;5;240m";
+  const std::string kForegroundDefault = "\x1B[39m";
+  const std::string kBackgroundMagenta = "\x1B[45m";
+  const std::string kBackgroundWhite = "\x1B[47m";
+  const std::string kBackgroundDefault = "\x1B[49m";
+
+  std::string output = kEraseScreen + kCursorHome;
+  for (int row = 0; row < 9; ++row) {
+    char rank = static_cast<char>('8' - row);
+    output += (row == 8 ? ' ' : rank);
+    output += ' ';
+    for (int col = 0; col < 8; ++col) {
+      char file = static_cast<char>('a' + col);
+      if (row != 8) {
+        int sq = (8 * (7 - row)) + col;
+        output +=
+            ((row + col) % 2 == 0) ? kBackgroundWhite : kBackgroundMagenta;
+        output += kForegroundBlack;
+        output += kUnicodePieces[unicode_index(sq)];
+      } else {
+        output += file;
+      }
+      output += ' ';
+    }
+    output += kBackgroundDefault;
+    output += kForegroundGray;
+    output += ' ';
+    for (size_t move = static_cast<size_t>(row); move < history_.size();
+         move += 9) {
+      std::string move_str = std::to_string(move + 1);
+      move_str.insert(0, 3 - move_str.size(), ' ');
+      move_str += ". ";
+      move_str += history_[move];
+      move_str.insert(move_str.end(), 14 - move_str.size(), ' ');
+      output += move_str;
+    }
+    output += kForegroundDefault;
+    output += '\n';
+  }
+  return output;
+}
+
+std::optional<ChessMove> ChessState::Parse(const std::string& input) const {
+  const std::regex san_pattern("([KQRBN]?)x?([a-h])([1-8])");
+
+  std::smatch san;
+  if (!std::regex_match(input, san, san_pattern)) {
+    return std::nullopt;
+  }
+
+  PieceType type = PieceType::kNone;
+  switch (san[1].str()[0]) {
+    case 'K':
+      type = PieceType::kKing;
+      break;
+    case 'Q':
+      type = PieceType::kQueen;
+      break;
+    case 'R':
+      type = PieceType::kRook;
+      break;
+    case 'B':
+      type = PieceType::kBishop;
+      break;
+    case 'N':
+      type = PieceType::kKnight;
+      break;
+    default:
+      type = PieceType::kPawn;
+      break;
+  }
+  int to_file = san[2].str()[0] - 'a';
+  int to_rank = san[3].str()[0] - '1';
+  int to = (8 * to_rank) + to_file;
+
+  auto moves = GenerateLegalMoves();
+  std::vector<ChessMove> candidates;
+  for (const auto& move : moves) {
+    if (move.to == to && piece_type_at(move.from) == type) {
+      candidates.push_back(move);
+    }
+  }
+  if (candidates.size() != 1) {
+    return std::nullopt;
+  }
+  return candidates[0];
 }

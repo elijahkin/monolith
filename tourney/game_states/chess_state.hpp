@@ -2,27 +2,37 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <vector>
 
-class ChessState {
- public:
-  enum class PieceType : uint8_t {
-    kNone,
-    kPawn,
-    kKnight,
-    kBishop,
-    kRook,
-    kQueen,
-    kKing
-  };
+#include "../contracts.hpp"
 
+enum class PieceType : uint8_t {
+  kNone,
+  kPawn,
+  kKnight,
+  kBishop,
+  kRook,
+  kQueen,
+  kKing
+};
+
+struct ChessMove {
+  int from;
+  int to;
+  PieceType promotion;
+  PieceType captured;
+};
+
+class ChessState : public Game<ChessMove> {
+ public:
   struct Move {
     int from;
     int to;
     PieceType promotion;
   };
 
-  // Stores information needed to undo a move
   struct MoveUndo {
     PieceType captured_piece;
     uint8_t old_castling_rights;
@@ -39,6 +49,14 @@ class ChessState {
   void unmake_move(Move m, const MoveUndo& undo);
 
   static ChessState initial_position();
+
+  void MakeMove(const ChessMove& move) override;
+  void UnmakeMove(const ChessMove& move) override;
+  [[nodiscard]] std::vector<ChessMove> GenerateLegalMoves() const override;
+  [[nodiscard]] std::string ToString() const override;
+  [[nodiscard]] std::optional<ChessMove> Parse(
+      const std::string& input) const override;
+  void RecordMove(const ChessMove& move);
 
  private:
   enum class Color : uint8_t { kWhite, kBlack };
@@ -111,6 +129,10 @@ class ChessState {
     return colors_[1 - static_cast<size_t>(side_to_move_)];
   }
 
+  [[nodiscard]] PieceType piece_type_at(int sq) const;
+  [[nodiscard]] int unicode_index(int sq) const;
+  [[nodiscard]] std::string get_algebraic_notation(const ChessMove& move) const;
+
   std::array<Bitboard, 7> pieces_{};
   std::array<Bitboard, 2> colors_{};
   Color side_to_move_ = Color::kWhite;
@@ -118,4 +140,7 @@ class ChessState {
   int en_passant_square_ = -1;
   int halfmove_clock_ = 0;
   int fullmove_number_ = 1;
+
+  std::vector<MoveUndo> undo_stack_;
+  std::vector<std::string> history_;
 };

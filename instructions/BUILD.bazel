@@ -1,0 +1,78 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "logging",
+    hdrs = [
+        "logging.hpp",
+    ],
+)
+
+cc_library(
+    name = "opcode",
+    hdrs = [
+        "opcode.hpp",
+    ],
+)
+
+cc_library(
+    name = "instruction",
+    hdrs = [
+        "instruction.hpp",
+    ],
+    deps = [
+        ":logging",
+        ":opcode",
+    ],
+)
+
+cc_library(
+    name = "autograd",
+    hdrs = [
+        "autograd.hpp",
+    ],
+    deps = [
+        ":instruction",
+    ],
+)
+
+cc_test(
+    name = "autograd_test",
+    size = "small",
+    srcs = ["autograd_test.cpp"],
+    deps = [
+        ":autograd",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "evaluator",
+    hdrs = [
+        "evaluator.hpp",
+    ],
+    deps = [
+        ":instruction",
+    ],
+)
+
+cc_library(
+    name = "optimizer",
+    hdrs = [
+        "optimizer.hpp",
+    ],
+    deps = [
+        ":evaluator",
+    ],
+)
+
+cc_test(
+    name = "optimizer_test",
+    size = "small",
+    srcs = ["optimizer_test.cpp"],
+    deps = [
+        ":optimizer",
+        GTEST_PATH,
+    ],
+)
