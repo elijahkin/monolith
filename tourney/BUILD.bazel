@@ -1,0 +1,31 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "chess_state",
+    srcs = [
+        "game_states/chess_state.cpp",
+    ],
+    hdrs = [
+        "game_states/chess_state.hpp",
+    ],
+)
+
+cc_library(
+    name = "perft",
+    hdrs = [
+        "tree_searches/perft.hpp",
+    ],
+)
+
+cc_test(
+    name = "chess_state_test",
+    size = "small",
+    srcs = ["game_states/chess_state_test.cpp"],
+    deps = [
+        ":chess_state",
+        ":perft",
+        GTEST_PATH,
+    ],
+)

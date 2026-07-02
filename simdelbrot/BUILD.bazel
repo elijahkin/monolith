@@ -1,0 +1,49 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+cc_library(
+    name = "stopwatch",
+    hdrs = [
+        "stopwatch.hpp",
+    ],
+)
+
+cc_library(
+    name = "mandelbrot",
+    hdrs = [
+        "mandelbrot.hpp",
+    ],
+    deps = [
+        ":stopwatch",
+        "@libpng",
+    ],
+)
+
+cc_binary(
+    name = "generate_samples",
+    srcs = ["generate_samples.cpp"],
+    copts = [
+        "-mavx512f",
+        "-fopenmp",
+    ],
+    linkopts = [
+        "-fopenmp",
+    ],
+    deps = [
+        ":mandelbrot",
+    ],
+)
+
+cc_binary(
+    name = "animate",
+    srcs = ["animate.cpp"],
+    copts = [
+        "-mavx512f",
+        "-fopenmp",
+    ],
+    linkopts = [
+        "-fopenmp",
+    ],
+    deps = [
+        ":mandelbrot",
+    ],
+)

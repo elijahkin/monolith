@@ -1,0 +1,20 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "tensor",
+    hdrs = [
+        "tensor.hpp",
+    ],
+)
+
+cc_test(
+    name = "tensor_test",
+    size = "small",
+    srcs = ["tensor_test.cpp"],
+    deps = [
+        ":tensor",
+        GTEST_PATH,
+    ],
+)

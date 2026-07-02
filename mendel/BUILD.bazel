@@ -1,0 +1,44 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+cc_library(
+    name = "genetic_operators",
+    hdrs = [
+        "genetic_operators.hpp",
+    ],
+)
+
+cc_library(
+    name = "permutation_state",
+    hdrs = [
+        "states/permutation_state.hpp",
+    ],
+    deps = [
+        ":genetic_operators",
+    ],
+)
+
+cc_library(
+    name = "tsp_evaluator",
+    hdrs = [
+        "evaluators/tsp_evaluator.hpp",
+    ],
+    deps = [
+        ":permutation_state",
+    ],
+)
+
+cc_library(
+    name = "genetic_algorithm",
+    hdrs = [
+        "genetic_algorithm.hpp",
+    ],
+)
+
+cc_binary(
+    name = "run_genetic_algorithm",
+    srcs = ["run_genetic_algorithm.cpp"],
+    deps = [
+        ":genetic_algorithm",
+        ":tsp_evaluator",
+    ],
+)

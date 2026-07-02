@@ -1,0 +1,121 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "algebraic_concepts",
+    hdrs = [
+        "algebraic_concepts.hpp",
+    ],
+)
+
+cc_library(
+    name = "blas",
+    hdrs = [
+        "blas.hpp",
+    ],
+)
+
+cc_test(
+    name = "blas_test",
+    size = "small",
+    srcs = ["blas_test.cpp"],
+    deps = [
+        ":blas",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "fft",
+    hdrs = [
+        "fft.hpp",
+    ],
+)
+
+cc_test(
+    name = "fft_test",
+    size = "small",
+    srcs = ["fft_test.cpp"],
+    deps = [
+        ":fft",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "ode",
+    hdrs = [
+        "ode.hpp",
+    ],
+)
+
+cc_test(
+    name = "ode_test",
+    size = "small",
+    srcs = ["ode_test.cpp"],
+    deps = [
+        ":ode",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "number_theory",
+    hdrs = [
+        "number_theory.hpp",
+    ],
+    deps = [
+        ":algebraic_concepts",
+    ],
+)
+
+cc_test(
+    name = "number_theory_test",
+    size = "small",
+    srcs = ["number_theory_test.cpp"],
+    deps = [
+        ":number_theory",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "polynomial",
+    hdrs = [
+        "polynomial.hpp",
+    ],
+    deps = [
+        ":algebraic_concepts",
+    ],
+)
+
+cc_test(
+    name = "polynomial_test",
+    size = "small",
+    srcs = ["polynomial_test.cpp"],
+    deps = [
+        ":polynomial",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "rootfinding",
+    hdrs = [
+        "rootfinding.hpp",
+    ],
+    deps = [
+        ":algebraic_concepts",
+    ],
+)
+
+cc_test(
+    name = "rootfinding_test",
+    size = "small",
+    srcs = ["rootfinding_test.cpp"],
+    deps = [
+        ":rootfinding",
+        GTEST_PATH,
+    ],
+)
