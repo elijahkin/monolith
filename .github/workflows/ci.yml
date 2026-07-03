@@ -24,7 +24,7 @@ jobs:
       - name: Install GCC 14 and lcov (needed for C++23 headers and coverage)
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-14 g++-14 libstdc++-14-dev gcov-14 lcov
+          sudo apt-get install -y gcc-14 g++-14 libstdc++-14-dev lcov
 
       - name: Build and test
         run: |
