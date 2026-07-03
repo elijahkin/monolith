@@ -117,6 +117,13 @@ class Optimizer {
       }
     }
 
+    // sqrt(x^2) --> abs(x)
+    if (unary->opcode() == kSqrt && operand->opcode() == kPower &&
+        IsConstantWithValue(operand->operand(1), 2)) {
+      VLOG(10) << "sqrt(x^2) --> abs(x)";
+      return ReplaceInstruction(unary, CreateUnary(kAbs, operand->operand(0)));
+    }
+
     // TODO More general: f(g(x)) --> f(x)
     if (operand->opcode() == kNegate && IsEven(unary->opcode())) {
       VLOG(10) << "f(-x) --> f(x) where f is even";
@@ -366,6 +373,25 @@ class Optimizer {
       return ReplaceInstruction(multiply, rhs);
     }
 
+    // x * pow(x, y) --> pow(x, y+1)
+    if (rhs->opcode() == kPower && rhs->operand(0) == lhs) {
+      VLOG(10) << "x*pow(x,y) --> pow(x,y+1)";
+      return ReplaceInstruction(
+          multiply,
+          CreateBinary(kPower, lhs,
+                       CreateBinary(kAdd, rhs->operand(1),
+                                    CreateConstant(lhs->shape(), 1))));
+    }
+    // pow(x, y) * x --> pow(x, y+1)
+    if (lhs->opcode() == kPower && lhs->operand(0) == rhs) {
+      VLOG(10) << "pow(x,y)*x --> pow(x,y+1)";
+      return ReplaceInstruction(
+          multiply,
+          CreateBinary(kPower, rhs,
+                       CreateBinary(kAdd, lhs->operand(1),
+                                    CreateConstant(rhs->shape(), 1))));
+    }
+
     if (lhs->opcode() == kPower && rhs->opcode() == kPower) {
       if (lhs->operand(1) == rhs->operand(1)) {
         VLOG(10) << "pow(x,z)*pow(y,z) --> pow(x*y,z)";
@@ -383,6 +409,31 @@ class Optimizer {
                          CreateBinary(kAdd, lhs->operand(1), rhs->operand(1))));
       }
     }
+
+    // (-x)*(-y) --> x*y
+    if (lhs->opcode() == kNegate && rhs->opcode() == kNegate) {
+      VLOG(10) << "(-x)*(-y) --> x*y";
+      return ReplaceInstruction(
+          multiply, CreateBinary(kMultiply, lhs->operand(0), rhs->operand(0)));
+    }
+
+    // x*(y/z) --> (x*y)/z
+    if (rhs->opcode() == kDivide) {
+      VLOG(10) << "x*(y/z) --> (x*y)/z";
+      return ReplaceInstruction(
+          multiply,
+          CreateBinary(kDivide, CreateBinary(kMultiply, lhs, rhs->operand(0)),
+                       rhs->operand(1)));
+    }
+    // (x/y)*z --> (x*z)/y
+    if (lhs->opcode() == kDivide) {
+      VLOG(10) << "(x/y)*z --> (x*z)/y";
+      return ReplaceInstruction(
+          multiply,
+          CreateBinary(kDivide, CreateBinary(kMultiply, lhs->operand(0), rhs),
+                       lhs->operand(1)));
+    }
+
     return false;
   }
 

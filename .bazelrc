@@ -1,1 +1,1 @@
-build --cxxopt=-std=c++23
+build --cxxopt=-std=c++23 --cxxopt=-O3 --cxxopt=-march=native

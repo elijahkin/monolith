@@ -1,5 +1,7 @@
 # Monolith
 
+[![CI](https://github.com/elijahkin/monolith/actions/workflows/ci.yml/badge.svg)](https://github.com/elijahkin/monolith/actions/workflows/ci.yml)
+
 > _One Repo to rule them all, One Repo to find them_\
 > _One Repo to bring them all and in the GitHub bind them._
 

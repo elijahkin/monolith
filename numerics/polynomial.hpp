@@ -15,9 +15,10 @@ template <RingElement T>
 class Polynomial {
  public:
   Polynomial(std::initializer_list<T> coeffs) : coeffs_(coeffs) {}
+  explicit Polynomial(std::vector<T> coeffs) : coeffs_(std::move(coeffs)) {}
 
   friend bool operator==(const Polynomial& lhs, const Polynomial& rhs) {
-    return lhs.coeffs_ == rhs.coeffs_;
+    return lhs.normalized() == rhs.normalized();
   }
 
   // TODO Spaceship operator? I'm not sure how useful it would be...
@@ -43,12 +44,23 @@ class Polynomial {
     for (size_t i = 0; i < rhs.coeffs_.size(); ++i) {
       coeffs_[i] += rhs.coeffs_[i];
     }
+    normalize();
     return *this;
   }
 
-  // TODO We should eventually use `fft::fft` for this.
   Polynomial& operator*=(const Polynomial& rhs) {
-    // TODO
+    if (coeffs_.empty() || rhs.coeffs_.empty()) {
+      coeffs_.clear();
+      return *this;
+    }
+    std::vector<T> result(coeffs_.size() + rhs.coeffs_.size() - 1, T(0));
+    for (size_t i = 0; i < coeffs_.size(); ++i) {
+      for (size_t j = 0; j < rhs.coeffs_.size(); ++j) {
+        result[i + j] += coeffs_[i] * rhs.coeffs_[j];
+      }
+    }
+    coeffs_ = std::move(result);
+    normalize();
     return *this;
   }
 
@@ -65,9 +77,14 @@ class Polynomial {
   // ================================ Calculus ================================
 
   Polynomial deriv() const {
-    Polynomial result{};
-    // TODO
-    return result;
+    if (coeffs_.empty() || coeffs_.size() == 1) {
+      return Polynomial{};
+    }
+    std::vector<T> result(coeffs_.size() - 1);
+    for (size_t i = 1; i < coeffs_.size(); ++i) {
+      result[i - 1] = coeffs_[i] * static_cast<T>(i);
+    }
+    return Polynomial(std::move(result));
   }
 
   // TODO root computation?
@@ -75,8 +92,33 @@ class Polynomial {
   // ================================= Output =================================
 
   [[nodiscard]] std::string to_string() const {
-    // TODO
-    return "TODO";
+    if (coeffs_.empty()) {
+      return "0";
+    }
+    std::string result;
+    for (size_t i = coeffs_.size(); i-- > 0;) {
+      if (coeffs_[i] == T(0)) {
+        continue;
+      }
+      if (!result.empty()) {
+        result += '+';
+      }
+      if (i == 0) {
+        result += std::to_string(coeffs_[i]);
+      } else {
+        if (coeffs_[i] != T(1)) {
+          result += std::to_string(coeffs_[i]);
+        }
+        result += 'x';
+        if (i > 1) {
+          result += '^' + std::to_string(i);
+        }
+      }
+    }
+    if (result.empty()) {
+      return "0";
+    }
+    return result;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
@@ -87,7 +129,19 @@ class Polynomial {
   // Coeffificents stored lowest degree first
   std::vector<T> coeffs_;
 
-  // TODO Should we have a `normalize` function?
+  void normalize() {
+    while (!coeffs_.empty() && coeffs_.back() == T(0)) {
+      coeffs_.pop_back();
+    }
+  }
+
+  [[nodiscard]] std::vector<T> normalized() const {
+    size_t last = coeffs_.size();
+    while (last > 0 && coeffs_[last - 1] == T(0)) {
+      --last;
+    }
+    return std::vector<T>(coeffs_.begin(), coeffs_.begin() + last);
+  }
 
   T horner(T x) const {
     if (coeffs_.empty()) {
