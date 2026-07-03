@@ -50,12 +50,14 @@ class ChessState : public Game<ChessMove> {
     int old_halfmove_clock;
   };
 
-  MoveUndo make_move(ChessMove m);
-  void unmake_move(ChessMove m, const MoveUndo& undo);
-
-  // Perft-hot variants that skip irrelevant bookkeeping (halfmove/fullmove)
-  MoveUndo make_move_perft(ChessMove m);
-  void unmake_move_perft(ChessMove m, const MoveUndo& undo);
+  // Core move application. When `keep_board` is true, the `board_` mailbox is
+  // kept in sync for callers that inspect positions via `piece_type_at`,
+  // `to_fen`, or `ToString`. The perft path passes false to skip the mailbox
+  // writes, which are dead weight during pure node counting.
+  // Note: halfmove_clock_ and fullmove_number_ are intentionally not updated
+  // here; no current caller relies on them after a search tree traversal.
+  MoveUndo make_move_impl(ChessMove m, bool keep_board);
+  void unmake_move_impl(ChessMove m, const MoveUndo& undo, bool keep_board);
 
   static ChessState initial_position();
   static ChessState from_fen(std::string_view fen);
@@ -217,6 +219,12 @@ class ChessState : public Game<ChessMove> {
         *out++ = ChessMove(sq, t, PieceType::kNone, pt);
       }
     }
+  }
+
+  // True if a move from a possibly-pinned square to `to_bb` is allowed by the
+  // pin ray. For unpinned pieces `pinned` is false and any destination is ok.
+  static bool pin_allows(bool pinned, Bitboard pin_ray, Bitboard to_bb) {
+    return !pinned || (to_bb & pin_ray) != 0;
   }
 
   Bitboard occupied() const { return colors_[0] | colors_[1]; }

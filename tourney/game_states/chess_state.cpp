@@ -151,6 +151,9 @@ void ChessState::init_magic_tables() {
 // --- End magic bitboard table data ---
 
 ChessState::AttackTables ChessState::compute_attack_tables() {
+  // The between-squares loop below calls rook_targets()/bishop_targets(), which
+  // dereference rook_table_/bishop_table_. These tables must be populated
+  // first; the call below is placement-critical.
   init_magic_tables();
   AttackTables a{};
   constexpr int kd[8][2] = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
@@ -185,6 +188,8 @@ ChessState::AttackTables ChessState::compute_attack_tables() {
     }
   }
 
+  // Depends on rook_table_/bishop_table_ populated by init_magic_tables()
+  // above.
   for (int sq1 = 0; sq1 < 64; ++sq1) {
     int f1 = sq1 & 7, r1 = sq1 >> 3;
     for (int sq2 = 0; sq2 < 64; ++sq2) {
@@ -272,8 +277,10 @@ ChessState::Bitboard ChessState::compute_pinned(int king_sq, Color us,
   return pinned;
 }
 
-ChessState::MoveUndo ChessState::make_move(ChessMove m) {
-  bool is_white = side_to_move_ == Color::kWhite;
+ChessState::MoveUndo ChessState::make_move_impl(ChessMove m, bool keep_board) {
+  int us = static_cast<int>(side_to_move_);
+  int them = 1 - us;
+  bool is_white = us == 0;
   Bitboard from_bb = square_bb(m.from);
   Bitboard to_bb = square_bb(m.to);
 
@@ -283,32 +290,44 @@ ChessState::MoveUndo ChessState::make_move(ChessMove m) {
   undo.old_halfmove_clock = halfmove_clock_;
   undo.captured_piece = PieceType::kNone;
 
-  PieceType pt = board_[m.from];
+  PieceType pt = m.piece;
 
-  if (board_[m.to] != PieceType::kNone) {
-    undo.captured_piece = board_[m.to];
-    pieces_[static_cast<size_t>(undo.captured_piece)] ^= to_bb;
-    colors_[1 - static_cast<size_t>(side_to_move_)] ^= to_bb;
+  Bitboard captured_occ = to_bb & colors_[them];
+  if (captured_occ) {
+    for (int i = 1; i <= 6; ++i) {
+      if (pieces_[i] & captured_occ) {
+        undo.captured_piece = static_cast<PieceType>(i);
+        pieces_[i] ^= to_bb;
+        break;
+      }
+    }
+    colors_[them] ^= to_bb;
   }
 
   if (pt == PieceType::kPawn && m.to == en_passant_square_) {
     int ep_pawn_sq = en_passant_square_ + (is_white ? -8 : 8);
     pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
-    colors_[1 - static_cast<size_t>(side_to_move_)] ^= square_bb(ep_pawn_sq);
+    colors_[them] ^= square_bb(ep_pawn_sq);
     undo.captured_piece = PieceType::kPawn;
-    board_[ep_pawn_sq] = PieceType::kNone;
+    if (keep_board) {
+      board_[ep_pawn_sq] = PieceType::kNone;
+    }
   }
 
   pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
-  colors_[static_cast<size_t>(side_to_move_)] ^= from_bb | to_bb;
+  colors_[us] ^= from_bb | to_bb;
 
-  board_[m.from] = PieceType::kNone;
-  board_[m.to] = pt;
+  if (keep_board) {
+    board_[m.from] = PieceType::kNone;
+    board_[m.to] = pt;
+  }
 
   if (m.promotion != PieceType::kNone) {
     pieces_[static_cast<size_t>(PieceType::kPawn)] ^= to_bb;
     pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
-    board_[m.to] = m.promotion;
+    if (keep_board) {
+      board_[m.to] = m.promotion;
+    }
   }
 
   if (pt == PieceType::kKing) {
@@ -318,32 +337,40 @@ ChessState::MoveUndo ChessState::make_move(ChessMove m) {
       Bitboard rook_to = square_bb(square(File::F, Rank::R1));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[0] ^= rook | rook_to;
-      board_[square(File::H, Rank::R1)] = PieceType::kNone;
-      board_[square(File::F, Rank::R1)] = PieceType::kRook;
+      if (keep_board) {
+        board_[square(File::H, Rank::R1)] = PieceType::kNone;
+        board_[square(File::F, Rank::R1)] = PieceType::kRook;
+      }
     } else if (m.from == square(File::E, Rank::R1) &&
                m.to == square(File::C, Rank::R1)) {
       Bitboard rook = square_bb(square(File::A, Rank::R1));
       Bitboard rook_to = square_bb(square(File::D, Rank::R1));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[0] ^= rook | rook_to;
-      board_[square(File::A, Rank::R1)] = PieceType::kNone;
-      board_[square(File::D, Rank::R1)] = PieceType::kRook;
+      if (keep_board) {
+        board_[square(File::A, Rank::R1)] = PieceType::kNone;
+        board_[square(File::D, Rank::R1)] = PieceType::kRook;
+      }
     } else if (m.from == square(File::E, Rank::R8) &&
                m.to == square(File::G, Rank::R8)) {
       Bitboard rook = square_bb(square(File::H, Rank::R8));
       Bitboard rook_to = square_bb(square(File::F, Rank::R8));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[1] ^= rook | rook_to;
-      board_[square(File::H, Rank::R8)] = PieceType::kNone;
-      board_[square(File::F, Rank::R8)] = PieceType::kRook;
+      if (keep_board) {
+        board_[square(File::H, Rank::R8)] = PieceType::kNone;
+        board_[square(File::F, Rank::R8)] = PieceType::kRook;
+      }
     } else if (m.from == square(File::E, Rank::R8) &&
                m.to == square(File::C, Rank::R8)) {
       Bitboard rook = square_bb(square(File::A, Rank::R8));
       Bitboard rook_to = square_bb(square(File::D, Rank::R8));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[1] ^= rook | rook_to;
-      board_[square(File::A, Rank::R8)] = PieceType::kNone;
-      board_[square(File::D, Rank::R8)] = PieceType::kRook;
+      if (keep_board) {
+        board_[square(File::A, Rank::R8)] = PieceType::kNone;
+        board_[square(File::D, Rank::R8)] = PieceType::kRook;
+      }
     }
   }
 
@@ -362,35 +389,33 @@ ChessState::MoveUndo ChessState::make_move(ChessMove m) {
     en_passant_square_ = -1;
   }
 
-  if (pt == PieceType::kPawn || undo.captured_piece != PieceType::kNone) {
-    halfmove_clock_ = 0;
-  } else {
-    ++halfmove_clock_;
-  }
-
-  if (is_white) {
-    ++fullmove_number_;
-  }
-  side_to_move_ = static_cast<Color>(1 - static_cast<size_t>(side_to_move_));
+  side_to_move_ = static_cast<Color>(them);
 
   return undo;
 }
 
-void ChessState::unmake_move(ChessMove m, const MoveUndo& undo) {
-  bool is_white = side_to_move_ == Color::kBlack;
-  side_to_move_ = static_cast<Color>(1 - static_cast<size_t>(side_to_move_));
+void ChessState::unmake_move_impl(ChessMove m, const MoveUndo& undo,
+                                  bool keep_board) {
+  int us = 1 - static_cast<int>(side_to_move_);
+  int them = 1 - us;
+  bool is_white = us == 0;
+  side_to_move_ = static_cast<Color>(us);
 
   Bitboard from_bb = square_bb(m.from);
   Bitboard to_bb = square_bb(m.to);
 
-  PieceType pt = board_[m.to];
-  if (m.promotion != PieceType::kNone) pt = PieceType::kPawn;
+  PieceType pt = m.piece;
+  if (m.promotion != PieceType::kNone) {
+    pt = PieceType::kPawn;
+  }
 
   pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
-  colors_[static_cast<size_t>(side_to_move_)] ^= from_bb | to_bb;
+  colors_[us] ^= from_bb | to_bb;
 
-  board_[m.from] = pt;
-  board_[m.to] = PieceType::kNone;
+  if (keep_board) {
+    board_[m.from] = pt;
+    board_[m.to] = PieceType::kNone;
+  }
 
   if (m.promotion != PieceType::kNone) {
     pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
@@ -401,12 +426,16 @@ void ChessState::unmake_move(ChessMove m, const MoveUndo& undo) {
     if (pt == PieceType::kPawn && m.to == undo.old_en_passant_square) {
       int ep_pawn_sq = undo.old_en_passant_square + (is_white ? -8 : 8);
       pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
-      colors_[1 - static_cast<size_t>(side_to_move_)] ^= square_bb(ep_pawn_sq);
-      board_[ep_pawn_sq] = PieceType::kPawn;
+      colors_[them] ^= square_bb(ep_pawn_sq);
+      if (keep_board) {
+        board_[ep_pawn_sq] = PieceType::kPawn;
+      }
     } else {
       pieces_[static_cast<size_t>(undo.captured_piece)] ^= to_bb;
-      colors_[1 - static_cast<size_t>(side_to_move_)] ^= to_bb;
-      board_[m.to] = undo.captured_piece;
+      colors_[them] ^= to_bb;
+      if (keep_board) {
+        board_[m.to] = undo.captured_piece;
+      }
     }
   }
 
@@ -417,41 +446,46 @@ void ChessState::unmake_move(ChessMove m, const MoveUndo& undo) {
       Bitboard rook_to = square_bb(square(File::F, Rank::R1));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[0] ^= rook | rook_to;
-      board_[square(File::H, Rank::R1)] = PieceType::kRook;
-      board_[square(File::F, Rank::R1)] = PieceType::kNone;
+      if (keep_board) {
+        board_[square(File::H, Rank::R1)] = PieceType::kRook;
+        board_[square(File::F, Rank::R1)] = PieceType::kNone;
+      }
     } else if (m.from == square(File::E, Rank::R1) &&
                m.to == square(File::C, Rank::R1)) {
       Bitboard rook = square_bb(square(File::A, Rank::R1));
       Bitboard rook_to = square_bb(square(File::D, Rank::R1));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[0] ^= rook | rook_to;
-      board_[square(File::A, Rank::R1)] = PieceType::kRook;
-      board_[square(File::D, Rank::R1)] = PieceType::kNone;
+      if (keep_board) {
+        board_[square(File::A, Rank::R1)] = PieceType::kRook;
+        board_[square(File::D, Rank::R1)] = PieceType::kNone;
+      }
     } else if (m.from == square(File::E, Rank::R8) &&
                m.to == square(File::G, Rank::R8)) {
       Bitboard rook = square_bb(square(File::H, Rank::R8));
       Bitboard rook_to = square_bb(square(File::F, Rank::R8));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[1] ^= rook | rook_to;
-      board_[square(File::H, Rank::R8)] = PieceType::kRook;
-      board_[square(File::F, Rank::R8)] = PieceType::kNone;
+      if (keep_board) {
+        board_[square(File::H, Rank::R8)] = PieceType::kRook;
+        board_[square(File::F, Rank::R8)] = PieceType::kNone;
+      }
     } else if (m.from == square(File::E, Rank::R8) &&
                m.to == square(File::C, Rank::R8)) {
       Bitboard rook = square_bb(square(File::A, Rank::R8));
       Bitboard rook_to = square_bb(square(File::D, Rank::R8));
       pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
       colors_[1] ^= rook | rook_to;
-      board_[square(File::A, Rank::R8)] = PieceType::kRook;
-      board_[square(File::D, Rank::R8)] = PieceType::kNone;
+      if (keep_board) {
+        board_[square(File::A, Rank::R8)] = PieceType::kRook;
+        board_[square(File::D, Rank::R8)] = PieceType::kNone;
+      }
     }
   }
 
   castling_rights_ = undo.old_castling_rights;
   en_passant_square_ = undo.old_en_passant_square;
   halfmove_clock_ = undo.old_halfmove_clock;
-  if (!is_white) {
-    --fullmove_number_;
-  }
 }
 
 ChessState ChessState::initial_position() {
@@ -705,13 +739,13 @@ void ChessState::RecordMove(const ChessMove& move) {
 }
 
 void ChessState::MakeMove(const ChessMove& move) {
-  ChessMove m{move.from, move.to, move.promotion};
-  undo_stack_.push_back(make_move(m));
+  ChessMove m{move.from, move.to, move.promotion, move.piece, move.captured};
+  undo_stack_.push_back(make_move_impl(m, true));
 }
 
 void ChessState::UnmakeMove(const ChessMove& move) {
-  ChessMove m{move.from, move.to, move.promotion};
-  unmake_move(m, undo_stack_.back());
+  ChessMove m{move.from, move.to, move.promotion, move.piece, move.captured};
+  unmake_move_impl(m, undo_stack_.back(), true);
   undo_stack_.pop_back();
 }
 
@@ -854,7 +888,7 @@ void ChessState::add_pawn_moves_fast(ChessMove*& out, Bitboard pinned_bb,
     int push_sq = sq + push_dir;
     Bitboard push_bb = square_bb(push_sq);
     if (!(occ & push_bb)) {
-      if ((push_bb & target_mask) && (!pinned || (push_bb & pin_ray))) {
+      if ((push_bb & target_mask) && pin_allows(pinned, pin_ray, push_bb)) {
         if (r == promo_rank) {
           *out++ = {sq, push_sq, PieceType::kKnight, PieceType::kPawn};
           *out++ = {sq, push_sq, PieceType::kBishop, PieceType::kPawn};
@@ -868,7 +902,7 @@ void ChessState::add_pawn_moves_fast(ChessMove*& out, Bitboard pinned_bb,
         int dp_sq = sq + (2 * push_dir);
         Bitboard dp_bb = square_bb(dp_sq);
         if (!(occ & dp_bb) && (dp_bb & target_mask) &&
-            (!pinned || (dp_bb & pin_ray))) {
+            pin_allows(pinned, pin_ray, dp_bb)) {
           *out++ = {sq, dp_sq, PieceType::kNone, PieceType::kPawn};
         }
       }
@@ -1041,164 +1075,6 @@ size_t ChessState::legal_moves_fast(ChessMove* result) const {
   return static_cast<int>(out - result);
 }
 
-ChessState::MoveUndo ChessState::make_move_perft(ChessMove m) {
-  int us = static_cast<int>(side_to_move_);
-  int them = 1 - us;
-  Bitboard from_bb = square_bb(m.from);
-  Bitboard to_bb = square_bb(m.to);
-
-  MoveUndo undo;
-  undo.old_castling_rights = castling_rights_;
-  undo.old_en_passant_square = en_passant_square_;
-  undo.captured_piece = PieceType::kNone;
-
-  PieceType pt = m.piece;
-
-  Bitboard captured_occ = to_bb & colors_[them];
-  if (captured_occ) {
-    for (int i = 1; i <= 6; ++i) {
-      if (pieces_[i] & captured_occ) {
-        undo.captured_piece = static_cast<PieceType>(i);
-        pieces_[i] ^= to_bb;
-        break;
-      }
-    }
-    colors_[them] ^= to_bb;
-  }
-
-  if (pt == PieceType::kPawn && m.to == en_passant_square_) {
-    int ep_pawn_sq = en_passant_square_ + (us == 0 ? -8 : 8);
-    pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
-    colors_[them] ^= square_bb(ep_pawn_sq);
-    undo.captured_piece = PieceType::kPawn;
-  }
-
-  pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
-  colors_[us] ^= from_bb | to_bb;
-
-  if (m.promotion != PieceType::kNone) {
-    pieces_[static_cast<size_t>(PieceType::kPawn)] ^= to_bb;
-    pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
-  }
-
-  if (pt == PieceType::kKing) {
-    if (m.from == square(File::E, Rank::R1) &&
-        m.to == square(File::G, Rank::R1)) {
-      Bitboard rook = square_bb(square(File::H, Rank::R1));
-      Bitboard rook_to = square_bb(square(File::F, Rank::R1));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[0] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R1) &&
-               m.to == square(File::C, Rank::R1)) {
-      Bitboard rook = square_bb(square(File::A, Rank::R1));
-      Bitboard rook_to = square_bb(square(File::D, Rank::R1));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[0] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R8) &&
-               m.to == square(File::G, Rank::R8)) {
-      Bitboard rook = square_bb(square(File::H, Rank::R8));
-      Bitboard rook_to = square_bb(square(File::F, Rank::R8));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[1] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R8) &&
-               m.to == square(File::C, Rank::R8)) {
-      Bitboard rook = square_bb(square(File::A, Rank::R8));
-      Bitboard rook_to = square_bb(square(File::D, Rank::R8));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[1] ^= rook | rook_to;
-    }
-  }
-
-  uint8_t clear_mask = 0;
-  if (m.from == 0 || m.to == 0) clear_mask |= 2;
-  if (m.from == 7 || m.to == 7) clear_mask |= 1;
-  if (m.from == 56 || m.to == 56) clear_mask |= 8;
-  if (m.from == 63 || m.to == 63) {
-    clear_mask |= 4;
-  }
-  if (m.from == 4) {
-    clear_mask |= 3;
-  }
-  if (m.from == 60) {
-    clear_mask |= 12;
-  }
-  castling_rights_ &= ~clear_mask;
-
-  if (pt == PieceType::kPawn && (m.to - m.from == 16 || m.to - m.from == -16)) {
-    en_passant_square_ = (m.from + m.to) / 2;
-  } else {
-    en_passant_square_ = -1;
-  }
-
-  side_to_move_ = static_cast<Color>(them);
-
-  return undo;
-}
-
-void ChessState::unmake_move_perft(ChessMove m, const MoveUndo& undo) {
-  int us = 1 - static_cast<int>(side_to_move_);
-  int them = 1 - us;
-  side_to_move_ = static_cast<Color>(us);
-
-  Bitboard from_bb = square_bb(m.from);
-  Bitboard to_bb = square_bb(m.to);
-
-  PieceType pt = m.piece;
-  if (m.promotion != PieceType::kNone) {
-    pt = PieceType::kPawn;
-  }
-
-  pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
-  colors_[us] ^= from_bb | to_bb;
-
-  if (m.promotion != PieceType::kNone) {
-    pieces_[static_cast<size_t>(m.promotion)] ^= to_bb;
-    pieces_[static_cast<size_t>(PieceType::kPawn)] ^= to_bb;
-  }
-
-  if (undo.captured_piece != PieceType::kNone) {
-    if (pt == PieceType::kPawn && m.to == undo.old_en_passant_square) {
-      int ep_pawn_sq = undo.old_en_passant_square + (us == 0 ? -8 : 8);
-      pieces_[static_cast<size_t>(PieceType::kPawn)] ^= square_bb(ep_pawn_sq);
-      colors_[them] ^= square_bb(ep_pawn_sq);
-    } else {
-      pieces_[static_cast<size_t>(undo.captured_piece)] ^= to_bb;
-      colors_[them] ^= to_bb;
-    }
-  }
-
-  if (pt == PieceType::kKing) {
-    if (m.from == square(File::E, Rank::R1) &&
-        m.to == square(File::G, Rank::R1)) {
-      Bitboard rook = square_bb(square(File::H, Rank::R1));
-      Bitboard rook_to = square_bb(square(File::F, Rank::R1));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[0] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R1) &&
-               m.to == square(File::C, Rank::R1)) {
-      Bitboard rook = square_bb(square(File::A, Rank::R1));
-      Bitboard rook_to = square_bb(square(File::D, Rank::R1));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[0] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R8) &&
-               m.to == square(File::G, Rank::R8)) {
-      Bitboard rook = square_bb(square(File::H, Rank::R8));
-      Bitboard rook_to = square_bb(square(File::F, Rank::R8));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[1] ^= rook | rook_to;
-    } else if (m.from == square(File::E, Rank::R8) &&
-               m.to == square(File::C, Rank::R8)) {
-      Bitboard rook = square_bb(square(File::A, Rank::R8));
-      Bitboard rook_to = square_bb(square(File::D, Rank::R8));
-      pieces_[static_cast<size_t>(PieceType::kRook)] ^= rook | rook_to;
-      colors_[1] ^= rook | rook_to;
-    }
-  }
-
-  castling_rights_ = undo.old_castling_rights;
-  en_passant_square_ = undo.old_en_passant_square;
-}
-
 size_t ChessState::PerftFast(size_t depth) {
   if (depth == 0) {
     return 1;
@@ -1210,9 +1086,9 @@ size_t ChessState::PerftFast(size_t depth) {
   }
   size_t nodes = 0;
   for (size_t i = 0; i < n; ++i) {
-    MoveUndo undo = make_move_perft(moves[i]);
+    MoveUndo undo = make_move_impl(moves[i], false);
     nodes += PerftFast(depth - 1);
-    unmake_move_perft(moves[i], undo);
+    unmake_move_impl(moves[i], undo, false);
   }
   return nodes;
 }

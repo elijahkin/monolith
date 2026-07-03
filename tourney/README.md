@@ -26,7 +26,13 @@ that which does not.
   - Upon switching to bitboards, use `__builtin_popcountll` based evaluation
     functions.
 - Implement the
-  [fifty-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule).
+  [fifty-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule). Note:
+  `ChessState::make_move_impl` intentionally does not maintain `halfmove_clock_`
+  (or `fullmove_number_`) on either the perft or interactive move-application
+  path, since the values would go stale during search-tree traversal and no
+  current caller relies on them after `MakeMove`. A future implementation of
+  this rule will need to either restore clock updates on the interactive path or
+  compute the halfmove counter from a recorded move history.
 - Implement special moves: pawn promotions, en passant capture, and castling.
   Ensure `Parse` and `GetAlgebraicNotation` are updated appropriately as well.
 - Add unit tests to guarantee correctness.
