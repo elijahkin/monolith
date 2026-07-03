@@ -1,23 +1,15 @@
-// Usage: animate [output_directory]
-// Example: ./animate /tmp/mandelbrot_frames
+// Usage: bazel run //simdelbrot:animate simdelbrot/animation
 
-#include <cstdlib>
 #include <filesystem>
 #include <string>
+#include <string_view>
 
+#include "../util/io.hpp"
 #include "mandelbrot.hpp"
 
 int main(int argc, char *argv[]) {
-  const char *workspace = std::getenv("BUILD_WORKSPACE_DIRECTORY");
-  const std::filesystem::path output_path =
-      argc > 1    ? std::filesystem::path(argv[1])
-      : workspace ? std::filesystem::path(workspace)
-                  : std::filesystem::current_path();
-  const std::string path =
-      (workspace && output_path.is_relative())
-          ? (std::filesystem::path(workspace) / output_path).string()
-          : output_path.string();
-  std::filesystem::create_directories(path);
+  const std::filesystem::path path = io::ResolveOutputPath(
+      argc > 1 ? std::string_view{argv[1]} : std::string_view{});
 
   auto plotter = mandelbrot::Plotter(1920, 1080);
 
@@ -25,7 +17,7 @@ int main(int argc, char *argv[]) {
   double apothem = 3;
   for (int i = 0; i < 16080; ++i) {
     plotter.Plot(-0.77568377, 0.13646737, apothem, 800, std::to_string(i),
-                 path);
+                 path.string());
     apothem *= 0.998929882193;
   }
   return 0;

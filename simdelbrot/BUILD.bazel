@@ -30,6 +30,7 @@ cc_binary(
     ],
     deps = [
         ":mandelbrot",
+        "//util:io",
     ],
 )
 
@@ -45,5 +46,6 @@ cc_binary(
     ],
     deps = [
         ":mandelbrot",
+        "//util:io",
     ],
 )

@@ -1,4 +1,4 @@
-// Usage: bazel run //collatz 30
+// Usage: bazel run //collatz:collatz 30 collatz
 
 #include <cstdlib>
 #include <filesystem>
@@ -6,6 +6,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
+
+#include "../util/io.hpp"
 
 int f(int n) { return (n % 2 == 0) ? (n >> 1) : ((3 * n) + 1); }
 
@@ -14,20 +17,11 @@ int main(int argc, char *argv[]) {
   const int N = std::atoi(argv[1]);
 
   // Determine output directory
-  const char *workspace = std::getenv("BUILD_WORKSPACE_DIRECTORY");
-  const std::filesystem::path output_path =
-      argc > 2    ? std::filesystem::path(argv[2])
-      : workspace ? std::filesystem::path(workspace)
-                  : std::filesystem::current_path();
-  const std::string dir =
-      (workspace && output_path.is_relative())
-          ? (std::filesystem::path(workspace) / output_path).string()
-          : output_path.string();
-  std::filesystem::create_directories(dir);
+  const std::filesystem::path dir = io::ResolveOutputPath(
+      argc > 2 ? std::string_view{argv[2]} : std::string_view{});
 
-  const std::string svg_path =
-      (std::filesystem::path(dir) / std::format("collatz{}.svg", N)).string();
-  const std::string gv_path = (std::filesystem::path(dir) / "tmp.gv").string();
+  const std::string svg_path = (dir / std::format("collatz{}.svg", N)).string();
+  const std::string gv_path = (dir / "tmp.gv").string();
 
   // Write to the .gv file
   std::ofstream file(gv_path);
