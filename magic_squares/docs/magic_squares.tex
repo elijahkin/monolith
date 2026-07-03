@@ -1,0 +1,129 @@
+\documentclass[11pt]{amsart}
+
+\usepackage{hyperref}
+
+\title{Sums of Powers, Taxicabs, and Magic Squares}
+\author{Elijah Kin}
+\date{\today}
+
+\begin{document}
+\begin{abstract}
+  We present a brief history of three interconnected problems: Diophantine equations involving sums of like powers, taxicab numbers and their generalizations, and magic squares.
+\end{abstract}
+
+\maketitle
+
+\section{Sums of Like Powers}
+We say that an equation is \emph{Diophantine} if only integer solutions are of interest. Such equations have been studied since antiquity; indeed, the Pythagorean triple
+\begin{equation*}
+  3^2 + 4^2 = 5^2
+\end{equation*}
+has been known as a solution to $a^2 + b^2 = c^2$ since $1800$ BC. Since then, we have proven there exist infinitely many such triples\footnote{In particular, there exist infinitely many \emph{primitive} Pythagorean triples, meaning $\gcd(a, b, c) = 1$.}.
+
+Not all Diophantine equations have solutions. For example, Fermat's last theorem\footnote{Not proven until 1994 by Andrew Wiles.} famously states that the Diophantine equation
+\begin{equation*}
+  a^k + b^k = c^k
+\end{equation*}
+has no solution consisting of positive integers for any integer power $k \geq 2$. Hence, we need not even consider the equation $a^3 + b^3 = c^3$. However, if we add a third term to the left-hand side, we obtain the equation
+\begin{equation*}
+  a^3 + b^3 + c^3 = d^3
+\end{equation*}
+which does have solutions, for example
+\begin{equation*}
+  3^3 + 4^3 + 5^3 = 6^3
+\end{equation*}
+for which reason $216$ has sometimes been called ``Plato's number.'' These observations led Euler to (falsely) conjecture in 1769 that if the equation
+\begin{equation*}
+  \sum_{i = 1}^n a_i^k = b^k
+\end{equation*}
+has a solution consisting of positive integers, then $n \geq k$. It was not until 1966 when Lander and Parkin discovered a counterexample for the $k = 5$ case via a computer search,
+\begin{equation*}
+  27^5 + 84^5 + 110^5 + 133^5 = 144^5,
+\end{equation*}
+which they published in a paper of merely two sentences \cite{LP66}.
+
+The $k = 4$ case fell in 1988 when Elkies gave a counterexample, and within the same year, Frye found the smallest possible:
+\begin{equation*}
+  95800^4 + 217519^4 + 414560^4 = 422481^4.
+\end{equation*}
+With Euler's conjecture thoroughly debunked, Lander, Parkin, and Selfridge offered one of their own \cite{LPS67}. In particular, that if the equation
+\begin{equation*}
+  \sum_{i = 1}^n a_i^k = \sum_{j = 1}^m b_j^k
+\end{equation*}
+has a solution of all positive integers with $a_i \neq b_j$ for all $1 \leq i \leq n$ and $1 \leq j \leq m$, then $m + n \geq k$. Observe that taking $m = 1$ yields something akin to Euler's conjecture, only with the bound loosened to $n \geq k - 1$. Though unproven, no counterexample to this conjecture is known as of writing.
+
+% TODO a^5+b^5 = c^5 + d^5
+% TODO 6th powers
+
+\section{Taxicab Numbers}
+\subsection{Sums of cubes in two ways}
+The number $1729$ has an interesting property that was made famous by the following anecdote from Hardy: when Ramanujan fell very ill, Hardy went to visit him in the hospital. Upon arriving, he remarked to Ramanujan that the number of the taxi in which he had come, $1729$, was rather unremarkable. Immediately, Ramanujan objected:
+\begin{quotation}
+  ``No, it is a very interesting number; it is the smallest number expressible as a sum of two cubes in two different ways''
+\end{quotation}
+and indeed, we observe that
+\begin{equation*}
+  1729 = 1^3 + 12^3 = 9^3 + 10^3.
+\end{equation*}
+Following Ramanujan's example, we define the $n$th \emph{taxicab number}, denoted $\operatorname{Taxicab}(n)$, to be the smallest integer expressible as a sum of two cubes in $n$ different ways. Hence, $1729 = \operatorname{Taxicab}(2)$, and in the decades since Ramanujan, we have found several more,
+\begin{align*}
+  \operatorname{Taxicab}(3) &= 87539319 \\
+  \operatorname{Taxicab}(4) &= 6963472309248 \\
+  \operatorname{Taxicab}(5) &= 48988659276962496 \\
+  \operatorname{Taxicab}(6) &= 24153319581254312065344
+\end{align*}
+which are also listed in \href{https://oeis.org/A011541}{A011541}. Further, upper bounds are known for all taxicab numbers through $\operatorname{Taxicab}(19)$ as given in \cite{Boy08}.
+
+TODO Generalized Taxicab numbers
+TODO Cabtaxi numbers
+TODO Open questions
+
+\subsection{Differences of biquadrates in three ways}
+Here \emph{biquadrate} is simply an archaic term for the fourth power of a number. Using the search \texttt{cabtaxi 4 2 3 524288}, we find two numbers which can each be written as a difference of fourth powers in three distinct ways:
+\begin{align*}
+  4860992489864937000960 &= 335084^4 - 296668^4 \\
+  &= 264047^4 - 1169^4 \\
+  &= 265076^4 - 93436^4 \\
+  25900232113758000049920 &= 401168^4 - 17228^4 \\
+  &= 421296^4 - 273588^4 \\
+  &= 415137^4 - 248289^4
+\end{align*}
+Both of the above are among the 23 primitive solutions given in \cite{CW07}, with the latter also given earlier in \cite{Zaj83}.
+
+\subsection{Sums of sursolids in two ways}
+Again, \emph{sursolid} is an archaic term for the fifth power of a number. Observe that a solution to the equation
+\begin{equation*}
+  a_1^5 + a_2^5 = b_1^5 + b_2^5
+\end{equation*}
+with $a_1, a_2, b_1, b_2$ distinct positive integers would be a counterexample to the Lander, Parkin, and Selfridge conjecture. Indeed, a solution to
+\begin{equation*}
+  a_1^k + a_2^k = b_1^k + b_2^k
+\end{equation*}
+for any $k \geq 5$ would disprove the conjecture; the conjecture implies that $\operatorname{Taxicab}(k, 2, 2)$ does not exist for any $k \geq 5$. Hence, to disprove the conjecture, one needs only demonstrate $\operatorname{Taxicab}(k, 2, 2)$ for some $k \geq 5$. Of course, this is easier said than done.
+
+\section{Magic Squares}
+\subsection{3x3 Magic Squares}
+Consider the $3 \times 3$ matrix
+\begin{equation*}
+  \begin{bmatrix} TODO
+  \end{bmatrix}
+\end{equation*}
+which has the special property that the sums of each row, each column, and both diagonals are all equal to the same number. We call such a matrix a \emph{magic square}. These have been long studied; in the late 1800s, \'{E}douard Lucas showed that all $3 \times 3$ magic squares of distinct positive integers are parameterized by
+\begin{equation*}
+  \begin{bmatrix} c - b & c + (a + b) & c - a \\ c - (a - b) & c & c + (a - b) \\ c + a & c - (a + b) & c + b
+  \end{bmatrix}
+\end{equation*}
+where $a$, $b$, and $c$ are integers such that $0 < a < b < c - a$ and $b \neq 2a$.
+
+TODO Impossibility of 3x3 cubes (and higher powers)
+TODO Open problem of 3x3 magic squares of squares
+TODO Open problem of 3x3 semimagic square of cubes
+
+\subsection{4x4 Magic Squares}
+TODO 4x4 characterization
+TODO Open problem of 4x4 magic square of cubes
+
+\nocite{*}
+\bibliographystyle{alpha}
+\bibliography{magic_squares}
+\end{document}

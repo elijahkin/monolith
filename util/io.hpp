@@ -33,17 +33,17 @@ std::filesystem::path WorkspaceRoot() {
   return dir;
 }
 
-}  // namespace internal
-
 std::filesystem::path GetWorkspaceDirectory() {
   const std::filesystem::path dir = internal::WorkspaceRoot() / "log";
   internal::CreateDirectoriesOrFail(dir);
   return dir;
 }
 
+}  // namespace internal
+
 std::filesystem::path ResolveOutputPath(std::string_view user_arg) {
   if (user_arg.empty()) {
-    return GetWorkspaceDirectory();
+    return internal::GetWorkspaceDirectory();
   }
 
   std::filesystem::path outpath(user_arg);
