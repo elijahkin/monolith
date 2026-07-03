@@ -25,6 +25,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-14 g++-14 libstdc++-14-dev lcov
+          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-14 100
 
       - name: Build and test
         run: |
@@ -42,11 +43,8 @@ jobs:
             --instrumentation_filter=//[...] \
             --repo_env=CC=/usr/bin/gcc-14 \
             --repo_env=CXX=/usr/bin/g++-14 \
-            --repo_env=GCOV=/usr/bin/gcov-14 \
             --action_env=CC=/usr/bin/gcc-14 \
-            --action_env=CXX=/usr/bin/g++-14 \
-            --action_env=GCOV=/usr/bin/gcov-14 \
-            --action_env=GCOV_PROGRAM=/usr/bin/gcov-14
+            --action_env=CXX=/usr/bin/g++-14
 
       - name: Print coverage summary
         run: |
