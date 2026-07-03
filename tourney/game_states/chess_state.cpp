@@ -7,6 +7,7 @@
 #include <optional>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // --- Magic bitboard table data ---
@@ -27,9 +28,13 @@ using BB = uint64_t;
   BB targets = 0;
   for (int s = sq + dir; 0 <= s && s < 64; s += dir) {
     int df = (s % 8) - ((s - dir) % 8);
-    if (df > 1 || df < -1) break;
+    if (df > 1 || df < -1) {
+      break;
+    }
     targets |= (BB{1} << s);
-    if (occ & (BB{1} << s)) break;
+    if (occ & (BB{1} << s)) {
+      break;
+    }
   }
   return targets;
 }
@@ -52,7 +57,9 @@ using BB = uint64_t;
     int dir = dirs[di];
     for (int s = sq + dir; 0 <= s && s < 64; s += dir) {
       int prev = s - dir;
-      if ((s % 8) - (prev % 8) > 1 || (prev % 8) - (s % 8) > 1) break;
+      if ((s % 8) - (prev % 8) > 1 || (prev % 8) - (s % 8) > 1) {
+        break;
+      }
       int next = s + dir;
       bool terminal = !(0 <= next && next < 64) || ((next % 8) - (s % 8) > 1) ||
                       ((s % 8) - (next % 8) > 1);
@@ -68,7 +75,9 @@ using BB = uint64_t;
   while (mask) {
     int bit = std::countr_zero(mask);
     mask &= mask - 1;
-    if (idx & 1) result |= (BB{1} << bit);
+    if (idx & 1) {
+      result |= (BB{1} << bit);
+    }
     idx >>= 1;
   }
   return result;
@@ -100,21 +109,24 @@ void ChessState::init_magic_table(bool bishop) {
     Bitboard mask = relevant_mask(sq, bishop);
     int bits = std::popcount(mask);
     int n = 1 << bits;
-    if (bishop)
+    if (bishop) {
       bishop_offset_[sq] = total;
-    else
+    } else {
       rook_offset_[sq] = total;
+    }
     total += n;
-    if (bishop)
+    if (bishop) {
       bishop_masks_[sq] = mask;
-    else
+    } else {
       rook_masks_[sq] = mask;
+    }
   }
   auto* table = new Bitboard[total];
-  if (bishop)
+  if (bishop) {
     bishop_table_ = table;
-  else
+  } else {
     rook_table_ = table;
+  }
   for (int sq = 0; sq < 64; ++sq) {
     Bitboard mask = bishop ? bishop_masks_[sq] : rook_masks_[sq];
     int bits = std::popcount(mask);
@@ -128,7 +140,9 @@ void ChessState::init_magic_table(bool bishop) {
 }
 
 void ChessState::init_magic_tables() {
-  if (magic_initialized_) return;
+  if (magic_initialized_) {
+    return;
+  }
   magic_initialized_ = true;
   init_magic_table(false);
   init_magic_table(true);
@@ -152,14 +166,23 @@ ChessState::AttackTables ChessState::compute_attack_tables() {
     }
     for (const auto& d : kKingDeltas) {
       int nr = r + d[0], nf = f + d[1];
-      if (0 <= nr && nr < 8 && 0 <= nf && nf < 8)
+      if (0 <= nr && nr < 8 && 0 <= nf && nf < 8) {
         a.king[sq] |= square_bb((nr * 8) + nf);
+      }
     }
 
-    if (f > 0 && r < 7) a.pawn_attacks[0][sq] |= square_bb(sq + 7);
-    if (f < 7 && r < 7) a.pawn_attacks[0][sq] |= square_bb(sq + 9);
-    if (f < 7 && r > 0) a.pawn_attacks[1][sq] |= square_bb(sq - 7);
-    if (f > 0 && r > 0) a.pawn_attacks[1][sq] |= square_bb(sq - 9);
+    if (f > 0 && r < 7) {
+      a.pawn_attacks[0][sq] |= square_bb(sq + 7);
+    }
+    if (f < 7 && r < 7) {
+      a.pawn_attacks[0][sq] |= square_bb(sq + 9);
+    }
+    if (f < 7 && r > 0) {
+      a.pawn_attacks[1][sq] |= square_bb(sq - 7);
+    }
+    if (f > 0 && r > 0) {
+      a.pawn_attacks[1][sq] |= square_bb(sq - 9);
+    }
   }
 
   for (int sq1 = 0; sq1 < 64; ++sq1) {
@@ -247,165 +270,6 @@ ChessState::Bitboard ChessState::compute_pinned(int king_sq, Color us,
     }
   }
   return pinned;
-}
-
-void ChessState::add_pawn_moves(std::vector<ChessMove>& moves) const {
-  Bitboard pawns = pieces_[static_cast<size_t>(PieceType::kPawn)] & us();
-  Bitboard occ = occupied();
-  Bitboard them_bb = them();
-  bool is_white = side_to_move_ == Color::kWhite;
-  int push_dir = is_white ? 8 : -8;
-  int start_rank = is_white ? 1 : 6;
-  int promo_rank = is_white ? 6 : 1;
-
-  while (pawns) {
-    int sq = std::countr_zero(pawns);
-    pawns &= pawns - 1;
-    int r = sq / 8;
-
-    int push_sq = sq + push_dir;
-    if (!(occ & square_bb(push_sq))) {
-      if (r == promo_rank) {
-        for (auto pt : {PieceType::kKnight, PieceType::kBishop,
-                        PieceType::kRook, PieceType::kQueen}) {
-          moves.push_back({sq, push_sq, pt});
-        }
-      } else {
-        moves.push_back({sq, push_sq, PieceType::kNone});
-      }
-      if (r == start_rank) {
-        int dp_sq = sq + (2 * push_dir);
-        if (!(occ & square_bb(dp_sq))) {
-          moves.push_back({sq, dp_sq, PieceType::kNone});
-        }
-      }
-    }
-
-    Bitboard cap_targets = kAttacks.pawn_attacks[!is_white][sq] & them_bb;
-    while (cap_targets) {
-      int cap_sq = std::countr_zero(cap_targets);
-      cap_targets &= cap_targets - 1;
-      if (r == promo_rank) {
-        for (auto pt : {PieceType::kKnight, PieceType::kBishop,
-                        PieceType::kRook, PieceType::kQueen})
-          moves.push_back({sq, cap_sq, pt});
-      } else {
-        moves.push_back({sq, cap_sq, PieceType::kNone});
-      }
-    }
-
-    Bitboard ep_cap =
-        kAttacks.pawn_attacks[!is_white][sq] & square_bb(en_passant_square_);
-    if (ep_cap) moves.push_back({sq, en_passant_square_, PieceType::kNone});
-  }
-}
-
-void ChessState::add_knight_moves(std::vector<ChessMove>& moves) const {
-  add_piece_moves(moves,
-                  pieces_[static_cast<size_t>(PieceType::kKnight)] & us(),
-                  [this](int sq) { return kAttacks.knight[sq]; });
-}
-
-void ChessState::add_king_moves(std::vector<ChessMove>& moves) const {
-  int sq =
-      std::countr_zero(pieces_[static_cast<size_t>(PieceType::kKing)] & us());
-  Bitboard targets = kAttacks.king[sq] & ~us();
-  while (targets) {
-    int t = std::countr_zero(targets);
-    targets &= targets - 1;
-    moves.push_back({sq, t, PieceType::kNone});
-  }
-
-  Bitboard occ = occupied();
-  if (side_to_move_ == Color::kWhite) {
-    if ((castling_rights_ & 1) && !(occ & 0x60) &&
-        !is_attacked(4, Color::kBlack) && !is_attacked(5, Color::kBlack)) {
-      moves.push_back({square(File::E, Rank::R1), square(File::G, Rank::R1),
-                       PieceType::kNone});
-    }
-    if ((castling_rights_ & 2) && !(occ & 0x0E) &&
-        !is_attacked(4, Color::kBlack) && !is_attacked(3, Color::kBlack)) {
-      moves.push_back({square(File::E, Rank::R1), square(File::C, Rank::R1),
-                       PieceType::kNone});
-    }
-  } else {
-    if ((castling_rights_ & 4) && !(occ & 0x6000000000000000) &&
-        !is_attacked(60, Color::kWhite) && !is_attacked(61, Color::kWhite)) {
-      moves.push_back({square(File::E, Rank::R8), square(File::G, Rank::R8),
-                       PieceType::kNone});
-    }
-    if ((castling_rights_ & 8) && !(occ & 0x0E00000000000000) &&
-        !is_attacked(60, Color::kWhite) && !is_attacked(59, Color::kWhite)) {
-      moves.push_back({square(File::E, Rank::R8), square(File::C, Rank::R8),
-                       PieceType::kNone});
-    }
-  }
-}
-
-void ChessState::add_bishop_moves(std::vector<ChessMove>& moves) const {
-  Bitboard occ = occupied();
-  add_piece_moves(moves,
-                  pieces_[static_cast<size_t>(PieceType::kBishop)] & us(),
-                  [this, occ](int sq) { return bishop_targets(sq, occ); });
-}
-
-void ChessState::add_rook_moves(std::vector<ChessMove>& moves) const {
-  Bitboard occ = occupied();
-  add_piece_moves(moves, pieces_[static_cast<size_t>(PieceType::kRook)] & us(),
-                  [this, occ](int sq) { return rook_targets(sq, occ); });
-}
-
-void ChessState::add_queen_moves(std::vector<ChessMove>& moves) const {
-  Bitboard occ = occupied();
-  add_piece_moves(moves, pieces_[static_cast<size_t>(PieceType::kQueen)] & us(),
-                  [this, occ](int sq) { return queen_targets(sq, occ); });
-}
-
-std::vector<ChessMove> ChessState::pseudo_legal_moves() const {
-  std::vector<ChessMove> moves;
-  add_pawn_moves(moves);
-  add_knight_moves(moves);
-  add_bishop_moves(moves);
-  add_rook_moves(moves);
-  add_queen_moves(moves);
-  add_king_moves(moves);
-  return moves;
-}
-
-double ChessState::evaluate() const {
-  if (in_check() && legal_moves().empty()) return -1e6;
-  constexpr double kPieceValues[] = {0, 1, 3, 3, 5, 9, 0};
-  double score = 0;
-  for (int pt = 1; pt <= 5; ++pt) {
-    int cnt = std::popcount(pieces_[static_cast<size_t>(pt)]);
-    if (side_to_move_ == Color::kWhite) {
-      score += kPieceValues[pt] * cnt;
-    } else {
-      score -= kPieceValues[pt] * cnt;
-    }
-  }
-  return score;
-}
-
-std::vector<ChessMove> ChessState::legal_moves() const {
-  std::vector<ChessMove> candidates = pseudo_legal_moves();
-  std::vector<ChessMove> result;
-  Color us = side_to_move_;
-
-  for (auto& m : candidates) {
-    MoveUndo undo = const_cast<ChessState*>(this)->make_move(m);
-    int king_sq =
-        std::countr_zero(pieces_[static_cast<size_t>(PieceType::kKing)] &
-                         colors_[static_cast<size_t>(us)]);
-    bool legal =
-        !is_attacked(king_sq, static_cast<Color>(1 - static_cast<size_t>(us)));
-    const_cast<ChessState*>(this)->unmake_move(m, undo);
-
-    if (legal) {
-      result.push_back(m);
-    }
-  }
-  return result;
 }
 
 ChessState::MoveUndo ChessState::make_move(ChessMove m) {
@@ -851,10 +715,10 @@ void ChessState::UnmakeMove(const ChessMove& move) {
   undo_stack_.pop_back();
 }
 
-int ChessState::FillLegalMoves(ChessMove* buffer, int capacity) const {
-  int n = legal_moves_fast(buffer);
+size_t ChessState::FillLegalMoves(ChessMove* buffer, size_t capacity) const {
+  size_t n = legal_moves_fast(buffer);
   (void)capacity;
-  for (int i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i) {
     auto& m = buffer[i];
     m.captured = board_[m.to];
     if (m.captured == PieceType::kNone && m.promotion == PieceType::kNone &&
@@ -1130,7 +994,7 @@ void ChessState::add_queen_moves_fast(ChessMove*& out, Bitboard occ,
       pinned_bb, pin_rays, target_mask);
 }
 
-int ChessState::legal_moves_fast(ChessMove* result) const {
+size_t ChessState::legal_moves_fast(ChessMove* result) const {
   Color us = side_to_move_;
   Color them = static_cast<Color>(1 - static_cast<size_t>(us));
   int king_sq =
@@ -1145,7 +1009,7 @@ int ChessState::legal_moves_fast(ChessMove* result) const {
 
   if (num_checks >= 2) {
     add_king_moves_fast(out, king_sq, occ);
-    return static_cast<int>(out - result);
+    return static_cast<size_t>(out - result);
   }
 
   Bitboard pin_rays[64];
@@ -1249,9 +1113,15 @@ ChessState::MoveUndo ChessState::make_move_perft(ChessMove m) {
   if (m.from == 0 || m.to == 0) clear_mask |= 2;
   if (m.from == 7 || m.to == 7) clear_mask |= 1;
   if (m.from == 56 || m.to == 56) clear_mask |= 8;
-  if (m.from == 63 || m.to == 63) clear_mask |= 4;
-  if (m.from == 4) clear_mask |= 3;
-  if (m.from == 60) clear_mask |= 12;
+  if (m.from == 63 || m.to == 63) {
+    clear_mask |= 4;
+  }
+  if (m.from == 4) {
+    clear_mask |= 3;
+  }
+  if (m.from == 60) {
+    clear_mask |= 12;
+  }
   castling_rights_ &= ~clear_mask;
 
   if (pt == PieceType::kPawn && (m.to - m.from == 16 || m.to - m.from == -16)) {
@@ -1274,7 +1144,9 @@ void ChessState::unmake_move_perft(ChessMove m, const MoveUndo& undo) {
   Bitboard to_bb = square_bb(m.to);
 
   PieceType pt = m.piece;
-  if (m.promotion != PieceType::kNone) pt = PieceType::kPawn;
+  if (m.promotion != PieceType::kNone) {
+    pt = PieceType::kPawn;
+  }
 
   pieces_[static_cast<size_t>(pt)] ^= from_bb | to_bb;
   colors_[us] ^= from_bb | to_bb;
@@ -1328,12 +1200,16 @@ void ChessState::unmake_move_perft(ChessMove m, const MoveUndo& undo) {
 }
 
 size_t ChessState::PerftFast(size_t depth) {
-  if (depth == 0) return 1;
+  if (depth == 0) {
+    return 1;
+  }
   ChessMove moves[ChessMove::kMaxMoves];
-  int n = legal_moves_fast(moves);
-  if (depth == 1) return static_cast<size_t>(n);
+  size_t n = legal_moves_fast(moves);
+  if (depth == 1) {
+    return n;
+  }
   size_t nodes = 0;
-  for (int i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i) {
     MoveUndo undo = make_move_perft(moves[i]);
     nodes += PerftFast(depth - 1);
     unmake_move_perft(moves[i], undo);

@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <optional>
 #include <string>
-#include <vector>
 
 // Defines the necessary functions to implement a game.
 template <typename Move>
@@ -15,8 +14,8 @@ class Game {
 
   virtual void UnmakeMove(const Move &move) = 0;
 
-  [[nodiscard]] virtual int FillLegalMoves(Move *buffer,
-                                           int capacity) const = 0;
+  [[nodiscard]] virtual size_t FillLegalMoves(Move *buffer,
+                                              size_t capacity) const = 0;
 
   [[nodiscard]] virtual bool IsOver() const = 0;
 
@@ -33,8 +32,8 @@ class Game {
 
     size_t nodes = 0;
     Move buf[Move::kMaxMoves];
-    int n = FillLegalMoves(buf, Move::kMaxMoves);
-    for (int i = 0; i < n; ++i) {
+    size_t n = FillLegalMoves(buf, Move::kMaxMoves);
+    for (size_t i = 0; i < n; ++i) {
       MakeMove(buf[i]);
       nodes += Perft(depth - 1);
       UnmakeMove(buf[i]);

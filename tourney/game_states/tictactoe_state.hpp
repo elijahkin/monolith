@@ -1,8 +1,8 @@
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "../contracts.hpp"
 
@@ -32,9 +32,9 @@ class TicTacToeState final : public Game<TicTacToeMove> {
     x_to_move_ = !x_to_move_;
   }
 
-  [[nodiscard]] int FillLegalMoves(TicTacToeMove* buffer,
-                                   int capacity) const override {
-    int n = 0;
+  [[nodiscard]] size_t FillLegalMoves(TicTacToeMove* buffer,
+                                      size_t capacity) const override {
+    size_t n = 0;
     for (uint8_t i = 0; i < 9 && n < capacity; ++i) {
       if (board_[i] == TtPiece::kEmpty) {
         buffer[n++] = TicTacToeMove{.square = i};
@@ -48,11 +48,19 @@ class TicTacToeState final : public Game<TicTacToeMove> {
       return board_[a] != TtPiece::kEmpty && board_[a] == board_[b] &&
              board_[b] == board_[c];
     };
-    for (int i = 0; i < 3; ++i)
-      if (win(i, i + 3, i + 6) || win(3 * i, 3 * i + 1, 3 * i + 2)) return true;
-    if (win(0, 4, 8) || win(2, 4, 6)) return true;
-    for (auto p : board_)
-      if (p == TtPiece::kEmpty) return false;
+    for (int i = 0; i < 3; ++i) {
+      if (win(i, i + 3, i + 6) || win(3 * i, (3 * i) + 1, (3 * i) + 2)) {
+        return true;
+      }
+    }
+    if (win(0, 4, 8) || win(2, 4, 6)) {
+      return true;
+    }
+    for (auto p : board_) {
+      if (p == TtPiece::kEmpty) {
+        return false;
+      }
+    }
     return true;
   }
 

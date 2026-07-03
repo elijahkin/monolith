@@ -37,7 +37,10 @@ jobs:
           --action_env=CXX=/usr/bin/g++-14
 
       - name: Generate coverage report
+        env:
+          VERBOSE_COVERAGE: "1"
         run: |
+          set -x
           bazel coverage //... \
             --combined_report=lcov \
             --instrumentation_filter=//[...] \
@@ -45,10 +48,20 @@ jobs:
             --repo_env=CXX=/usr/bin/g++-14 \
             --action_env=CC=/usr/bin/gcc-14 \
             --action_env=CXX=/usr/bin/g++-14
+          echo "=== combined report info ==="
+          ls -l bazel-out/_coverage/_coverage_report.dat || true
+          wc -l bazel-out/_coverage/_coverage_report.dat || true
+          echo "--- first 20 lines of combined report ---"
+          head -20 bazel-out/_coverage/_coverage_report.dat || true
+          echo "=== per-test coverage.dat files ==="
+          find bazel-out -name 'coverage.dat' -exec ls -l {} \; || true
+          echo "=== resolving gcov / lcov ==="
+          which gcov; gcov --version | head -1
+          which lcov; lcov --version | head -1
 
       - name: Print coverage summary
         run: |
-          lcov --summary bazel-out/_coverage/_coverage_report.dat
+          lcov --summary bazel-out/_coverage/_coverage_report.dat --ignore-errors empty
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4

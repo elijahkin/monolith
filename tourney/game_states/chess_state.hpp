@@ -50,9 +50,6 @@ class ChessState : public Game<ChessMove> {
     int old_halfmove_clock;
   };
 
-  [[nodiscard]] double evaluate() const;
-  std::vector<ChessMove> legal_moves() const;
-
   MoveUndo make_move(ChessMove m);
   void unmake_move(ChessMove m, const MoveUndo& undo);
 
@@ -69,8 +66,8 @@ class ChessState : public Game<ChessMove> {
   [[nodiscard]] std::string ToString() const override;
   [[nodiscard]] std::optional<ChessMove> Parse(
       const std::string& input) const override;
-  [[nodiscard]] int FillLegalMoves(ChessMove* buffer,
-                                   int capacity) const override;
+  [[nodiscard]] size_t FillLegalMoves(ChessMove* buffer,
+                                      size_t capacity) const override;
   [[nodiscard]] bool IsOver() const override;
   void RecordMove(const ChessMove& move);
 
@@ -78,7 +75,7 @@ class ChessState : public Game<ChessMove> {
   [[nodiscard]] size_t PerftFast(size_t depth);
 
   // Fill pre-allocated buffer with legal moves, returns count
-  int legal_moves_fast(ChessMove* moves) const;
+  size_t legal_moves_fast(ChessMove* moves) const;
 
  private:
   enum class Color : uint8_t { kWhite, kBlack };
@@ -128,63 +125,41 @@ class ChessState : public Game<ChessMove> {
   static int bishop_offset_[64];
   static bool magic_initialized_;
 
-  bool is_attacked(int sq, Color by, Bitboard slider_occ = ~Bitboard{0},
-                   Bitboard ignore = 0) const {
-    if (slider_occ == ~Bitboard{0}) slider_occ = occupied();
+  [[nodiscard]] bool is_attacked(int sq, Color by,
+                                 Bitboard slider_occ = ~Bitboard{0},
+                                 Bitboard ignore = 0) const {
+    if (slider_occ == ~Bitboard{0}) {
+      slider_occ = occupied();
+    }
 
     Bitboard enemy = colors_[static_cast<size_t>(by)] & ~ignore;
 
     if (kAttacks.pawn_attacks[1 - static_cast<size_t>(by)][sq] &
-        pieces_[static_cast<size_t>(PieceType::kPawn)] & enemy)
+        pieces_[static_cast<size_t>(PieceType::kPawn)] & enemy) {
       return true;
+    }
     if (kAttacks.knight[sq] & pieces_[static_cast<size_t>(PieceType::kKnight)] &
-        enemy)
+        enemy) {
       return true;
+    }
     if (kAttacks.king[sq] & pieces_[static_cast<size_t>(PieceType::kKing)] &
-        enemy)
+        enemy) {
       return true;
+    }
     if (bishop_targets(sq, slider_occ) &
         (pieces_[static_cast<size_t>(PieceType::kBishop)] |
          pieces_[static_cast<size_t>(PieceType::kQueen)]) &
-        enemy)
+        enemy) {
       return true;
+    }
     if (rook_targets(sq, slider_occ) &
         (pieces_[static_cast<size_t>(PieceType::kRook)] |
          pieces_[static_cast<size_t>(PieceType::kQueen)]) &
-        enemy)
+        enemy) {
       return true;
+    }
     return false;
   }
-  bool in_check() const {
-    int king_sq =
-        std::countr_zero(pieces_[static_cast<size_t>(PieceType::kKing)] & us());
-    return is_attacked(
-        king_sq, static_cast<Color>(1 - static_cast<size_t>(side_to_move_)));
-  }
-
-  void add_pawn_moves(std::vector<ChessMove>& moves) const;
-  void add_knight_moves(std::vector<ChessMove>& moves) const;
-  void add_king_moves(std::vector<ChessMove>& moves) const;
-  void add_bishop_moves(std::vector<ChessMove>& moves) const;
-  void add_rook_moves(std::vector<ChessMove>& moves) const;
-  void add_queen_moves(std::vector<ChessMove>& moves) const;
-
-  template <typename F>
-  void add_piece_moves(std::vector<ChessMove>& moves, Bitboard pieces_bb,
-                       F&& get_targets) const {
-    while (pieces_bb) {
-      int sq = std::countr_zero(pieces_bb);
-      pieces_bb &= pieces_bb - 1;
-      Bitboard targets = get_targets(sq) & ~us();
-      while (targets) {
-        int t = std::countr_zero(targets);
-        targets &= targets - 1;
-        moves.push_back({sq, t});
-      }
-    }
-  }
-
-  std::vector<ChessMove> pseudo_legal_moves() const;
 
   Bitboard compute_checkers(int king_sq, Color them) const;
   Bitboard compute_pinned(int king_sq, Color us, Color them,
@@ -228,7 +203,9 @@ class ChessState : public Game<ChessMove> {
         *out++ = ChessMove(sq, t, PieceType::kNone, pt);
       }
     }
-    if (!pin_rays) return;
+    if (!pin_rays) {
+      return;
+    }
     Bitboard pinned = pieces_bb & pinned_bb;
     while (pinned) {
       int sq = std::countr_zero(pinned);
