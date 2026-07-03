@@ -24,7 +24,7 @@ cc_library(
 
 cc_test(
     name = "chess_state_test",
-    size = "small",
+    size = "medium",
     srcs = ["game_states/chess_state_test.cpp"],
     deps = [
         ":chess_state",

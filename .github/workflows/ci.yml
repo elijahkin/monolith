@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   push:
@@ -21,8 +21,13 @@ jobs:
             'MODULE.bazel.lock') }}
           restore-keys: bazel-${{ runner.os }}-
 
+      - name: Install newer GCC (needed for <generator>)
+        run: sudo apt-get update && sudo apt-get install -y g++-14
+
       - name: Build and test
-        run: bazel test //... --test_output=errors
+        run: >
+          bazel test //... --test_output=errors --action_env=CC=/usr/bin/gcc-14
+          --action_env=CXX=/usr/bin/g++-14
 
       - name: Generate coverage report
         run: |

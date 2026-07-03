@@ -15,7 +15,10 @@ class Game {
 
   virtual void UnmakeMove(const Move &move) = 0;
 
-  [[nodiscard]] virtual std::vector<Move> GenerateLegalMoves() const = 0;
+  [[nodiscard]] virtual int FillLegalMoves(Move *buffer,
+                                           int capacity) const = 0;
+
+  [[nodiscard]] virtual bool IsOver() const = 0;
 
   [[nodiscard]] virtual std::string ToString() const = 0;
 
@@ -29,10 +32,12 @@ class Game {
     }
 
     size_t nodes = 0;
-    for (const auto &move : GenerateLegalMoves()) {
-      MakeMove(move);
+    Move buf[Move::kMaxMoves];
+    int n = FillLegalMoves(buf, Move::kMaxMoves);
+    for (int i = 0; i < n; ++i) {
+      MakeMove(buf[i]);
       nodes += Perft(depth - 1);
-      UnmakeMove(move);
+      UnmakeMove(buf[i]);
     }
     return nodes;
   }

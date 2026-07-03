@@ -12,6 +12,8 @@ const std::string kEraseScreen = "\x1B[2J";
 enum class TtPiece : uint8_t { kEmpty, kX, kO };
 
 struct TicTacToeMove {
+  static constexpr int kMaxMoves = 9;
+
   uint8_t square;
 };
 
@@ -30,14 +32,28 @@ class TicTacToeState final : public Game<TicTacToeMove> {
     x_to_move_ = !x_to_move_;
   }
 
-  [[nodiscard]] std::vector<TicTacToeMove> GenerateLegalMoves() const override {
-    std::vector<TicTacToeMove> moves;
-    for (uint8_t i = 0; i < 9; ++i) {
+  [[nodiscard]] int FillLegalMoves(TicTacToeMove* buffer,
+                                   int capacity) const override {
+    int n = 0;
+    for (uint8_t i = 0; i < 9 && n < capacity; ++i) {
       if (board_[i] == TtPiece::kEmpty) {
-        moves.push_back(TicTacToeMove{.square = i});
+        buffer[n++] = TicTacToeMove{.square = i};
       }
     }
-    return moves;
+    return n;
+  }
+
+  [[nodiscard]] bool IsOver() const override {
+    auto win = [&](int a, int b, int c) {
+      return board_[a] != TtPiece::kEmpty && board_[a] == board_[b] &&
+             board_[b] == board_[c];
+    };
+    for (int i = 0; i < 3; ++i)
+      if (win(i, i + 3, i + 6) || win(3 * i, 3 * i + 1, 3 * i + 2)) return true;
+    if (win(0, 4, 8) || win(2, 4, 6)) return true;
+    for (auto p : board_)
+      if (p == TtPiece::kEmpty) return false;
+    return true;
   }
 
   [[nodiscard]] std::string ToString() const override;

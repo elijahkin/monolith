@@ -1,5 +1,6 @@
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -108,6 +109,12 @@ class Tensor {
     // the whether `idx_` is a key in `vec_.data_`. If so, it returns its
     // associated value, and `vec_.default_value_` otherwise.
     operator T() const {  // NOLINT
+      constexpr auto kDims = std::array{shape...};
+      for (size_t i = 0; i < kDims.size(); ++i) {
+        if (idx_[i] < 0 || idx_[i] >= kDims[i]) {
+          return T{};
+        }
+      }
       if (auto it = vec_->data_.find(idx_); it != vec_->data_.end()) {
         return it->second;
       }
