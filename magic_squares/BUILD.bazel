@@ -1,15 +1,33 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
 
 cc_library(
-    name = "generators",
-    hdrs = ["generators.hpp"],
+    name = "collision_generator",
+    hdrs = ["collision_generator.hpp"],
+)
+
+cc_library(
+    name = "taxicab_state",
+    hdrs = ["taxicab_state.hpp"],
+)
+
+cc_test(
+    name = "taxicab_state_test",
+    srcs = ["taxicab_state_test.cpp"],
+    deps = [
+        ":collision_generator",
+        ":taxicab_state",
+        GTEST_PATH,
+    ],
 )
 
 cc_binary(
     name = "generate_taxicabs",
     srcs = ["generate_taxicabs.cpp"],
     deps = [
-        ":generators",
+        ":collision_generator",
+        ":taxicab_state",
         "//util:io",
     ],
 )

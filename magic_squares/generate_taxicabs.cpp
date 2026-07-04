@@ -9,7 +9,8 @@
 #include <string>
 
 #include "../util/io.hpp"
-#include "generators.hpp"
+#include "collision_generator.hpp"
+#include "taxicab_state.hpp"
 
 int main(int argc, char** argv) {
   if (argc != 5) {
@@ -42,7 +43,10 @@ int main(int argc, char** argv) {
   constexpr __uint128_t kTen = 10;
   const auto limit = pow(kTen, digits);
 
-  TaxicabGenerator<__uint128_t, size_t> generator(k, n, limit);
+  // TODO I think we are ignoring `n` currently, and acting as if it's always 2.
+  using State = SumOfTwoPowersState<__uint128_t, size_t>;
+  CollisionGenerator<State> generator(j, State::seed(k, limit));
+
   size_t num_sols = 0;
   std::cout << "Done with precomputation.\n";
 
