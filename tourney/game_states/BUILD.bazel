@@ -1,0 +1,38 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+GTEST_PATH = "@googletest//:gtest_main"
+
+cc_library(
+    name = "chess_state",
+    srcs = [
+        "chess_state.cpp",
+    ],
+    hdrs = [
+        "chess_state.hpp",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tourney:contracts",
+    ],
+)
+
+cc_test(
+    name = "chess_state_test",
+    size = "medium",
+    srcs = ["chess_state_test.cpp"],
+    deps = [
+        ":chess_state",
+        "//tourney/tree_search:perft",
+        GTEST_PATH,
+    ],
+)
+
+cc_library(
+    name = "tictactoe_state",
+    hdrs = [
+        "tictactoe_state.hpp",
+    ],
+    deps = [
+        "//tourney:contracts",
+    ],
+)

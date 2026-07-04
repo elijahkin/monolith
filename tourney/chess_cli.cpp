@@ -1,4 +1,4 @@
-// Usage: bazel run //tourney:cli_chess
+// Usage: bazel run //tourney:chess_cli
 
 #include <array>
 #include <cstddef>

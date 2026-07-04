@@ -43,6 +43,8 @@ struct ChessMove {
 
 class ChessState : public Game<ChessMove> {
  public:
+  using MoveT = ChessMove;
+
   struct MoveUndo {
     PieceType captured_piece;
     uint8_t old_castling_rights;

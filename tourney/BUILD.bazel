@@ -1,74 +1,29 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-
-GTEST_PATH = "@googletest//:gtest_main"
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_library(
     name = "contracts",
     hdrs = [
         "contracts.hpp",
     ],
+    visibility = ["//visibility:public"],
 )
 
-cc_library(
-    name = "chess_state",
-    srcs = [
-        "game_states/chess_state.cpp",
-    ],
-    hdrs = [
-        "game_states/chess_state.hpp",
-    ],
+cc_binary(
+    name = "chess_benchmark",
+    srcs = ["chess_benchmark.cpp"],
     deps = [
-        ":contracts",
-    ],
-)
-
-cc_test(
-    name = "chess_state_test",
-    size = "medium",
-    srcs = ["game_states/chess_state_test.cpp"],
-    deps = [
-        ":chess_state",
-        GTEST_PATH,
-    ],
-)
-
-cc_library(
-    name = "tictactoe_state",
-    hdrs = [
-        "game_states/tictactoe_state.hpp",
-    ],
-    deps = [
-        ":contracts",
-    ],
-)
-
-cc_library(
-    name = "human_agent",
-    hdrs = [
-        "agents/human_agent.hpp",
-    ],
-    deps = [
-        ":contracts",
-    ],
-)
-
-cc_library(
-    name = "minimax_agent",
-    hdrs = [
-        "agents/minimax_agent.hpp",
-    ],
-    deps = [
-        ":contracts",
+        "//tourney/game_states:chess_state",
+        "//tourney/tree_search:perft",
     ],
 )
 
 cc_binary(
-    name = "cli_chess",
-    srcs = ["cli_chess.cpp"],
+    name = "chess_cli",
+    srcs = ["chess_cli.cpp"],
     deps = [
-        ":chess_state",
         ":contracts",
-        ":human_agent",
-        ":minimax_agent",
+        "//tourney/agents:human_agent",
+        "//tourney/agents:minimax_agent",
+        "//tourney/game_states:chess_state",
     ],
 )
