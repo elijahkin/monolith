@@ -1,9 +1,15 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+cc_library(
+    name = "generators",
+    hdrs = ["generators.hpp"],
+)
 
 cc_binary(
-    name = "taxicab",
-    srcs = ["taxicab.cpp"],
+    name = "generate_taxicabs",
+    srcs = ["generate_taxicabs.cpp"],
     deps = [
+        ":generators",
         "//util:io",
     ],
 )

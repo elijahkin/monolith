@@ -1,1 +1,11 @@
-build --cxxopt=-std=c++23 --cxxopt=-O3 --cxxopt=-march=native
+# Use C++23 standard
+build --cxxopt=-std=c++23
+
+# Optimize for the current CPU architecture
+build --cxxopt=-O3 --cxxopt=-march=native
+
+# Enforce strict warnings
+build --cxxopt=-Wall --cxxopt=-Wextra --cxxopt=-Wpedantic
+
+# Treat warnings as errors
+# build --cxxopt=-Werror
