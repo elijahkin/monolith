@@ -1,63 +1,90 @@
 #include "chess_state.hpp"
 
-#include <string>
+#include <string_view>
 
 #include "gtest/gtest.h"
 
-TEST(ChessStateTest, PerftSmall) {
-  auto initial = ChessState::initial_position();
+// https://www.chessprogramming.org/Perft_Results
 
-  // https://www.chessprogramming.org/Perft_Results
-  EXPECT_EQ(initial.PerftFast(0), 1UL);
-  EXPECT_EQ(initial.PerftFast(1), 20UL);
-  EXPECT_EQ(initial.PerftFast(2), 400UL);
-  EXPECT_EQ(initial.PerftFast(3), 8'902UL);
-  EXPECT_EQ(initial.PerftFast(4), 197'281UL);
-  EXPECT_EQ(initial.PerftFast(5), 4'865'609UL);
+TEST(ChessStateTest, InitialPosition) {
+  auto position = ChessState::initial_position();
+
+  EXPECT_EQ(position.PerftFast(0), 1UL);
+  EXPECT_EQ(position.PerftFast(1), 20UL);
+  EXPECT_EQ(position.PerftFast(2), 400UL);
+  EXPECT_EQ(position.PerftFast(3), 8'902UL);
+  EXPECT_EQ(position.PerftFast(4), 197'281UL);
+  EXPECT_EQ(position.PerftFast(5), 4'865'609UL);
+  EXPECT_EQ(position.PerftFast(6), 119'060'324UL);
 }
 
-TEST(ChessStateTest, Perft6) {
-  auto initial = ChessState::initial_position();
-  EXPECT_EQ(initial.PerftFast(6), 119'060'324UL);
+TEST(ChessStateTest, Position2) {
+  constexpr std::string_view kFen =
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
+
+  auto position = ChessState::from_fen(kFen);
+  EXPECT_EQ(position.to_fen(), kFen);
+
+  EXPECT_EQ(position.PerftFast(1), 48UL);
+  EXPECT_EQ(position.PerftFast(2), 2'039UL);
+  EXPECT_EQ(position.PerftFast(3), 97'862UL);
+  EXPECT_EQ(position.PerftFast(4), 4'085'603UL);
+  EXPECT_EQ(position.PerftFast(5), 193'690'690UL);
 }
 
-TEST(ChessStateTest, Perft7) {
-  auto initial = ChessState::initial_position();
-  EXPECT_EQ(initial.PerftFast(7), 3'195'901'860UL);
+TEST(ChessStateTest, Position3) {
+  constexpr std::string_view kFen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1";
+
+  auto position = ChessState::from_fen(kFen);
+  EXPECT_EQ(position.to_fen(), kFen);
+
+  EXPECT_EQ(position.PerftFast(1), 14UL);
+  EXPECT_EQ(position.PerftFast(2), 191UL);
+  EXPECT_EQ(position.PerftFast(3), 2'812UL);
+  EXPECT_EQ(position.PerftFast(4), 43'238UL);
+  EXPECT_EQ(position.PerftFast(5), 674'624UL);
+  EXPECT_EQ(position.PerftFast(6), 11'030'083UL);
 }
 
-TEST(ChessStateTest, FenRoundTrip) {
-  const std::string start_fen =
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  auto s = ChessState::from_fen(start_fen);
-  EXPECT_EQ(s.to_fen(), start_fen);
+TEST(ChessStateTest, Position4) {
+  constexpr std::string_view kFen =
+      "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+
+  auto position = ChessState::from_fen(kFen);
+  EXPECT_EQ(position.to_fen(), kFen);
+
+  EXPECT_EQ(position.PerftFast(1), 6UL);
+  EXPECT_EQ(position.PerftFast(2), 264UL);
+  EXPECT_EQ(position.PerftFast(3), 9'467UL);
+  EXPECT_EQ(position.PerftFast(4), 422'333UL);
+  EXPECT_EQ(position.PerftFast(5), 15'833'292UL);
 }
 
-TEST(ChessStateTest, FenKiwipete) {
-  const std::string kp =
-      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-  auto s = ChessState::from_fen(kp);
-  EXPECT_EQ(s.to_fen(), kp);
+TEST(ChessStateTest, Position5) {
+  constexpr std::string_view kFen =
+      "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+
+  auto position = ChessState::from_fen(kFen);
+  EXPECT_EQ(position.to_fen(), kFen);
+
+  EXPECT_EQ(position.PerftFast(1), 44UL);
+  EXPECT_EQ(position.PerftFast(2), 1'486UL);
+  EXPECT_EQ(position.PerftFast(3), 62'379UL);
+  EXPECT_EQ(position.PerftFast(4), 2'103'487UL);
+  EXPECT_EQ(position.PerftFast(5), 89'941'194UL);
 }
 
-TEST(ChessStateTest, FenNoCastling) {
-  const std::string fen =
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1";
-  auto s = ChessState::from_fen(fen);
-  EXPECT_EQ(s.to_fen(), fen);
-}
+TEST(ChessStateTest, Position6) {
+  constexpr std::string_view kFen =
+      "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 "
+      "10";
 
-TEST(ChessStateTest, FenEnPassant) {
-  const std::string fen =
-      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-  auto s = ChessState::from_fen(fen);
-  EXPECT_EQ(s.to_fen(), fen);
-}
+  auto position = ChessState::from_fen(kFen);
+  EXPECT_EQ(position.to_fen(), kFen);
 
-TEST(ChessStateTest, FenInitialPosition) {
-  const std::string fen =
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  auto from_fen = ChessState::from_fen(fen);
-  auto from_init = ChessState::initial_position();
-  EXPECT_EQ(from_fen.to_fen(), from_init.to_fen());
+  EXPECT_EQ(position.PerftFast(1), 46UL);
+  EXPECT_EQ(position.PerftFast(2), 2'079UL);
+  EXPECT_EQ(position.PerftFast(3), 89'890UL);
+  EXPECT_EQ(position.PerftFast(4), 3'894'594UL);
+  EXPECT_EQ(position.PerftFast(5), 164'075'551UL);
 }

@@ -697,11 +697,14 @@ std::string ChessState::to_fen() const {
     fen += static_cast<char>('1' + (en_passant_square_ / 8));
   }
 
-  fen += ' ';
-  fen += std::to_string(halfmove_clock_);
-
-  fen += ' ';
-  fen += std::to_string(fullmove_number_);
+  if (halfmove_clock_ != 0 || fullmove_number_ != 0) {
+    fen += ' ';
+    fen += std::to_string(halfmove_clock_);
+    if (fullmove_number_ != 0) {
+      fen += ' ';
+      fen += std::to_string(fullmove_number_);
+    }
+  }
 
   return fen;
 }
