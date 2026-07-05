@@ -9,8 +9,11 @@
 template <typename T>
 T order_crossover(const T& mother, const T& father, std::mt19937& rng) {
   size_t n = mother.size();
+
+  T child(n);
   if (n < 2) {
-    return mother;
+    std::ranges::copy(mother, child.begin());
+    return child;
   }
 
   std::uniform_int_distribution<size_t> dist(0, n - 1);
@@ -20,7 +23,6 @@ T order_crossover(const T& mother, const T& father, std::mt19937& rng) {
     std::swap(start, end);
   }
 
-  T child(n);
   std::vector<bool> taken(n, false);
 
   for (size_t i = start; i <= end; ++i) {

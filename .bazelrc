@@ -8,4 +8,4 @@ build --cxxopt=-O3 --cxxopt=-march=native
 build --cxxopt=-Wall --cxxopt=-Wextra --cxxopt=-Wpedantic
 
 # Treat warnings as errors
-# build --cxxopt=-Werror
+build --cxxopt=-Werror

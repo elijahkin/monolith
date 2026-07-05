@@ -1,5 +1,6 @@
 #include <immintrin.h>
 #include <png.h>
+#include <pngconf.h>
 
 #include <cmath>
 #include <cstdint>
@@ -112,11 +113,11 @@ class Plotter {
                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
                  PNG_FILTER_TYPE_DEFAULT);
     png_write_info(png, info);
-    png_bytep row_pointers[height_];
+    std::vector<png_bytep> row_pointers(height_);
     for (size_t i = 0; i < height_; ++i) {
       row_pointers[i] = &rgb_[i * width_ * 3];
     }
-    png_write_image(png, row_pointers);
+    png_write_image(png, row_pointers.data());
     png_write_end(png, nullptr);
     png_destroy_write_struct(&png, &info);
     fclose(fp);
@@ -176,7 +177,8 @@ class Plotter {
             _mm512_fmadd_pd(z_real, z_real, _mm512_mul_pd(z_imag, z_imag));
         const __mmask8 escaped = _mm512_cmp_pd_mask(z_abs_sq, four, _CMP_GE_OQ);
         const __m512d this_iter = _mm512_set1_pd(iter);
-        const __m512d blend = _mm512_mask_blend_pd(escaped, MAX_ITER, this_iter);
+        const __m512d blend =
+            _mm512_mask_blend_pd(escaped, MAX_ITER, this_iter);
         ESCAPE_ITER = _mm512_min_pd(ESCAPE_ITER, blend);
 
         // Updating points with their new values, keeping escaped points fixed

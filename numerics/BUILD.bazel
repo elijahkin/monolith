@@ -37,6 +37,12 @@ cc_test(
     name = "fft_test",
     size = "small",
     srcs = ["fft_test.cpp"],
+    copts = [
+        "-fopenmp",
+    ],
+    linkopts = [
+        "-fopenmp",
+    ],
     deps = [
         ":fft",
         GTEST_PATH,

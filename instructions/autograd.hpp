@@ -115,6 +115,8 @@ class Autograd {
       case kSubtract:
         return CreateBinary(kSubtract, Derivative(instruction->operand(0)),
                             Derivative(instruction->operand(1)));
+      default:
+        return nullptr;
     }
   }
 };

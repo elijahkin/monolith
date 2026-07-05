@@ -6,6 +6,9 @@
 #include <span>
 #include <vector>
 
+// TODO This file should probably have a corresponding fft.cpp so the user is
+// not responsible for adding OpenMP as a dependency.
+
 namespace fft {
 
 // TODO Can anything be made more efficient? SIMD/CUDA potential anywhere?

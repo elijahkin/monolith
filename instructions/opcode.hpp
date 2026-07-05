@@ -104,6 +104,8 @@ std::string opcode_to_string(Opcode opcode) {
       return "tan";
     case kTanh:
       return "tanh";
+    default:
+      return "unknown";
   }
 }
 
@@ -143,6 +145,8 @@ int Arity(Opcode opcode) {
     case kPower:
     case kSubtract:
       return 2;
+    default:
+      return 0;
   }
 }
 
