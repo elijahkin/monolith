@@ -1,0 +1,50 @@
+Checks:
+  - bugprone-*
+  # TODO There is an issue with clang-analyzer not running with clangd/bazel
+  - clang-analyzer-*
+  - cppcoreguidelines-*
+  - google-*
+  - llvm-*
+  - misc-*
+  - modernize-*
+  - mpi-*
+  - openmp-*
+  - performance-*
+  - portability-*
+  - readability-*
+  - -cppcoreguidelines-avoid-magic-numbers
+  - -cppcoreguidelines-pro-bounds-constant-array-index
+  - -readability-identifier-length
+  - -readability-magic-numbers
+
+CheckOptions:
+  - { key: readability-identifier-naming.ClassCase, value: CamelCase }
+  - { key: readability-identifier-naming.StructCase, value: CamelCase }
+  - { key: readability-identifier-naming.TypeAliasCase, value: CamelCase }
+  - { key: readability-identifier-naming.EnumCase, value: CamelCase }
+  - {
+      key: readability-identifier-naming.TypeTemplateParameterCase,
+      value: CamelCase,
+    }
+  - { key: readability-identifier-naming.ConceptCase, value: CamelCase }
+  - { key: readability-identifier-naming.VariableCase, value: lower_case }
+  # TODO ClassMemberCase does not seem to be working.
+  - { key: readability-identifier-naming.ClassMemberCase, value: lower_case }
+  - { key: readability-identifier-naming.ClassMemberSuffix, value: _ }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix, value: k }
+  - {
+      key: readability-identifier-naming.ConstexprVariableCase,
+      value: CamelCase,
+    }
+  - { key: readability-identifier-naming.FunctionCase, value: aNy_CasE }
+  - { key: readability-identifier-naming.NamespaceCase, value: lower_case }
+  - { key: readability-identifier-naming.EnumConstantPrefix, value: k }
+  - { key: readability-identifier-naming.EnumConstantCase, value: CamelCase }
+  - {
+      key: readability-identifier-naming.ValueTemplateParameterCase,
+      value: lower_case,
+    }
+  - {
+      key: readability-identifier-naming.MacroDefinitionCase,
+      value: UPPER_CASE,
+    }
