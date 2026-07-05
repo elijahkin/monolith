@@ -711,11 +711,30 @@ std::string ChessState::to_fen() const {
 
 PieceType ChessState::piece_type_at(int sq) const { return board_[sq]; }
 
-int ChessState::unicode_index(int sq) const {
+const char* ChessState::to_unicode(int sq) const {
+  static constexpr std::array<const char*, 7> kWhiteUnicode = {
+      /* kNone   */ " ",
+      /* kPawn   */ "\u2659",
+      /* kKnight */ "\u2658",
+      /* kBishop */ "\u2657",
+      /* kRook   */ "\u2656",
+      /* kQueen  */ "\u2655",
+      /* kKing   */ "\u2654",
+  };
+  static constexpr std::array<const char*, 7> kBlackUnicode = {
+      /* kNone   */ " ",
+      /* kPawn   */ "\u265F",
+      /* kKnight */ "\u265E",
+      /* kBishop */ "\u265D",
+      /* kRook   */ "\u265C",
+      /* kQueen  */ "\u265B",
+      /* kKing   */ "\u265A",
+  };
+
   PieceType pt = board_[sq];
-  if (pt == PieceType::kNone) return 0;
-  if (colors_[0] & square_bb(sq)) return static_cast<int>(pt);
-  return static_cast<int>(pt) + 6;
+  bool is_white = (colors_[0] & square_bb(sq)) != 0;
+  return is_white ? kWhiteUnicode[static_cast<size_t>(pt)]
+                  : kBlackUnicode[static_cast<size_t>(pt)];
 }
 
 std::string ChessState::get_algebraic_notation(const ChessMove& move) const {
@@ -767,15 +786,11 @@ size_t ChessState::FillLegalMoves(ChessMove* buffer, size_t capacity) const {
 }
 
 bool ChessState::IsOver() const {
-  ChessMove buf[1];
-  return FillLegalMoves(buf, 1) == 0;
+  ChessMove buf[ChessMove::kMaxMoves];
+  return FillLegalMoves(buf, ChessMove::kMaxMoves) == 0;
 }
 
 std::string ChessState::ToString() const {
-  static constexpr std::array<const char*, 13> kUnicodePieces = {
-      " ",      "\u2654", "\u2655", "\u2656", "\u2657", "\u2658", "\u2659",
-      "\u265a", "\u265b", "\u265c", "\u265d", "\u265e", "\u265f"};
-
   const std::string kCursorHome = "\x1B[H";
   const std::string kEraseScreen = "\x1B[2J";
   const std::string kForegroundBlack = "\x1B[30m";
@@ -797,7 +812,7 @@ std::string ChessState::ToString() const {
         output +=
             ((row + col) % 2 == 0) ? kBackgroundWhite : kBackgroundMagenta;
         output += kForegroundBlack;
-        output += kUnicodePieces[unicode_index(sq)];
+        output += to_unicode(sq);
       } else {
         output += file;
       }

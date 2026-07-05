@@ -14,10 +14,11 @@
 
 int main(int argc, char** argv) {
   if (argc != 5) {
+    // https://en.wikipedia.org/wiki/Generalized_taxicab_number
     std::cerr << "Usage: " << argv[0] << " <k> <j> <n> <digits>\n"
-              << "  k       power to raise bases to (e.g. 3 for cubes)\n"
-              << "  j       number of pairs per taxicab number (must be 2)\n"
-              << "  n       number of solutions to find\n"
+              << "  k       positive power (e.g. 3 for cubes)\n"
+              << "  j       number of numbers in a representation (must be 2)\n"
+              << "  n       number of ways\n"
               << "  digits  upper bound is 10^digits\n";
     exit(1);
   }
@@ -43,9 +44,8 @@ int main(int argc, char** argv) {
   constexpr __uint128_t kTen = 10;
   const auto limit = pow(kTen, digits);
 
-  // TODO I think we are ignoring `n` currently, and acting as if it's always 2.
   using State = SumOfTwoPowersState<__uint128_t, size_t>;
-  CollisionGenerator<State> generator(j, State::seed(k, limit));
+  CollisionGenerator<State> generator(n, State::seed(k, limit));
 
   size_t num_sols = 0;
   std::cout << "Done with precomputation.\n";

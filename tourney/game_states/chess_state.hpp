@@ -236,7 +236,7 @@ class ChessState : public Game<ChessMove> {
   }
 
   [[nodiscard]] PieceType piece_type_at(int sq) const;
-  [[nodiscard]] int unicode_index(int sq) const;
+  [[nodiscard]] const char* to_unicode(int sq) const;
   [[nodiscard]] std::string get_algebraic_notation(const ChessMove& move) const;
 
   std::array<Bitboard, 7> pieces_{};
