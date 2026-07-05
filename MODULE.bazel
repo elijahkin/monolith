@@ -15,3 +15,15 @@ bazel_dep(
     name = "libpng",
     version = "1.6.54",
 )
+
+bazel_dep(
+    name = "hedron_compile_commands",
+    dev_dependency = True,
+)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "1f9360db1834d115c48279d38a97f30d64d3fd4a",
+    # TODO Move off of fork once issue is resolved:
+    # https://github.com/hedronvision/bazel-compile-commands-extractor/issues/279
+    remote = "https://github.com/helly25/bazel-compile-commands-extractor.git",
+)

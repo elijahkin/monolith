@@ -1,21 +1,23 @@
-Checks:
-  - bugprone-*
-  # TODO There is an issue with clang-analyzer not running with clangd/bazel
-  - clang-analyzer-*
-  - cppcoreguidelines-*
-  - google-*
-  - llvm-*
-  - misc-*
-  - modernize-*
-  - mpi-*
-  - openmp-*
-  - performance-*
-  - portability-*
-  - readability-*
-  - -cppcoreguidelines-avoid-magic-numbers
-  - -cppcoreguidelines-pro-bounds-constant-array-index
-  - -readability-identifier-length
-  - -readability-magic-numbers
+# TODO clang-analyzer checks don't seem to be running under clangd?
+Checks: |
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  google-*,
+  llvm-*,
+  misc-*,
+  modernize-*,
+  mpi-*,
+  openmp-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers
 
 CheckOptions:
   - { key: readability-identifier-naming.ClassCase, value: CamelCase }
