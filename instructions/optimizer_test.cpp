@@ -4,19 +4,19 @@
 
 #include "gtest/gtest.h"
 
-static const Shape *one_by_one = new Shape({1, 1});
+static const Shape* one_by_one = new Shape({1, 1});
 
 TEST(OptimizerTest, UnaryConstantFolding) {
-  Instruction *c = CreateConstant(one_by_one, 5);
+  Instruction* c = CreateConstant(one_by_one, 5);
 
-  Instruction *abs = CreateUnary(kAbs, c);
-  Instruction *cos = CreateUnary(kCos, c);
-  Instruction *exp = CreateUnary(kExp, c);
-  Instruction *log = CreateUnary(kLog, c);
-  Instruction *neg = CreateUnary(kNegate, c);
-  Instruction *sin = CreateUnary(kSin, c);
-  Instruction *tan = CreateUnary(kTan, c);
-  Instruction *tanh = CreateUnary(kTanh, c);
+  Instruction* abs = CreateUnary(kAbs, c);
+  Instruction* cos = CreateUnary(kCos, c);
+  Instruction* exp = CreateUnary(kExp, c);
+  Instruction* log = CreateUnary(kLog, c);
+  Instruction* neg = CreateUnary(kNegate, c);
+  Instruction* sin = CreateUnary(kSin, c);
+  Instruction* tan = CreateUnary(kTan, c);
+  Instruction* tanh = CreateUnary(kTanh, c);
 
   Optimizer opt;
   opt.Run(abs);
@@ -38,16 +38,16 @@ TEST(OptimizerTest, UnaryConstantFolding) {
 }
 
 TEST(OptimizerTest, BinaryConstantFolding) {
-  Instruction *c1 = CreateConstant(one_by_one, 2);
-  Instruction *c2 = CreateConstant(one_by_one, 3);
+  Instruction* c1 = CreateConstant(one_by_one, 2);
+  Instruction* c2 = CreateConstant(one_by_one, 3);
 
-  Instruction *add = CreateBinary(kAdd, c1, c2);
-  Instruction *div = CreateBinary(kDivide, c1, c2);
-  Instruction *max = CreateBinary(kMaximum, c1, c2);
-  Instruction *min = CreateBinary(kMinimum, c1, c2);
-  Instruction *mul = CreateBinary(kMultiply, c1, c2);
-  Instruction *pow = CreateBinary(kPower, c1, c2);
-  Instruction *sub = CreateBinary(kSubtract, c1, c2);
+  Instruction* add = CreateBinary(kAdd, c1, c2);
+  Instruction* div = CreateBinary(kDivide, c1, c2);
+  Instruction* max = CreateBinary(kMaximum, c1, c2);
+  Instruction* min = CreateBinary(kMinimum, c1, c2);
+  Instruction* mul = CreateBinary(kMultiply, c1, c2);
+  Instruction* pow = CreateBinary(kPower, c1, c2);
+  Instruction* sub = CreateBinary(kSubtract, c1, c2);
 
   Optimizer opt;
   opt.Run(add);
@@ -67,11 +67,11 @@ TEST(OptimizerTest, BinaryConstantFolding) {
 }
 
 TEST(OptimizerTest, BinaryCanonicalization) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *c = CreateConstant(one_by_one, 3);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 3);
 
-  Instruction *add = CreateBinary(kAdd, x, c);
-  Instruction *mul = CreateBinary(kMultiply, x, c);
+  Instruction* add = CreateBinary(kAdd, x, c);
+  Instruction* mul = CreateBinary(kMultiply, x, c);
 
   Optimizer opt;
   opt.Run(add);
@@ -83,10 +83,10 @@ TEST(OptimizerTest, BinaryCanonicalization) {
 }
 
 TEST(OptimizerTest, AddZeroToParameter) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *c = CreateConstant(one_by_one, 0);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 0);
 
-  Instruction *add = CreateBinary(kAdd, c, x);
+  Instruction* add = CreateBinary(kAdd, c, x);
 
   Optimizer opt;
   opt.Run(add);
@@ -94,10 +94,10 @@ TEST(OptimizerTest, AddZeroToParameter) {
 }
 
 TEST(OptimizerTest, MultiplyZeroToConstantZero) {
-  Instruction *c = CreateConstant(one_by_one, 0);
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 0);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *mul = CreateBinary(kMultiply, c, x);
+  Instruction* mul = CreateBinary(kMultiply, c, x);
 
   Optimizer opt;
   opt.Run(mul);
@@ -105,10 +105,10 @@ TEST(OptimizerTest, MultiplyZeroToConstantZero) {
 }
 
 TEST(OptimizerTest, MultiplyOneToParameter) {
-  Instruction *c = CreateConstant(one_by_one, 1);
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 1);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *mul = CreateBinary(kMultiply, c, x);
+  Instruction* mul = CreateBinary(kMultiply, c, x);
 
   Optimizer opt;
   opt.Run(mul);
@@ -116,11 +116,11 @@ TEST(OptimizerTest, MultiplyOneToParameter) {
 }
 
 TEST(OptimizerTest, NegateEvenFunction) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *neg = CreateUnary(kNegate, x);
-  Instruction *abs = CreateUnary(kAbs, neg);
-  Instruction *cos = CreateUnary(kCos, neg);
+  Instruction* neg = CreateUnary(kNegate, x);
+  Instruction* abs = CreateUnary(kAbs, neg);
+  Instruction* cos = CreateUnary(kCos, neg);
 
   Optimizer opt;
   opt.Run(abs);
@@ -130,12 +130,12 @@ TEST(OptimizerTest, NegateEvenFunction) {
 }
 
 TEST(OptimizerTest, NegateOddFunction) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *neg = CreateUnary(kNegate, x);
-  Instruction *sin = CreateUnary(kSin, neg);
-  Instruction *tan = CreateUnary(kTan, neg);
-  Instruction *tanh = CreateUnary(kTanh, neg);
+  Instruction* neg = CreateUnary(kNegate, x);
+  Instruction* sin = CreateUnary(kSin, neg);
+  Instruction* tan = CreateUnary(kTan, neg);
+  Instruction* tanh = CreateUnary(kTanh, neg);
 
   Optimizer opt;
   opt.Run(sin);
@@ -147,15 +147,15 @@ TEST(OptimizerTest, NegateOddFunction) {
 }
 
 TEST(OptimizerTest, InverseCancellation) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *exp = CreateUnary(kExp, x);
-  Instruction *log = CreateUnary(kLog, x);
-  Instruction *neg = CreateUnary(kNegate, x);
+  Instruction* exp = CreateUnary(kExp, x);
+  Instruction* log = CreateUnary(kLog, x);
+  Instruction* neg = CreateUnary(kNegate, x);
 
-  Instruction *log_exp = CreateUnary(kLog, exp);
-  Instruction *exp_log = CreateUnary(kExp, log);
-  Instruction *neg_neg = CreateUnary(kNegate, neg);
+  Instruction* log_exp = CreateUnary(kLog, exp);
+  Instruction* exp_log = CreateUnary(kExp, log);
+  Instruction* neg_neg = CreateUnary(kNegate, neg);
 
   Optimizer opt;
   opt.Run(log_exp);
@@ -167,12 +167,12 @@ TEST(OptimizerTest, InverseCancellation) {
 }
 
 TEST(OptimizerTest, MultiplyExponentials) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *exp_x = CreateUnary(kExp, x);
-  Instruction *neg = CreateUnary(kNegate, x);
-  Instruction *exp_neg = CreateUnary(kExp, neg);
-  Instruction *mul = CreateBinary(kMultiply, exp_x, exp_neg);
+  Instruction* exp_x = CreateUnary(kExp, x);
+  Instruction* neg = CreateUnary(kNegate, x);
+  Instruction* exp_neg = CreateUnary(kExp, neg);
+  Instruction* mul = CreateBinary(kMultiply, exp_x, exp_neg);
 
   Optimizer opt;
   opt.Run(mul);
@@ -180,13 +180,13 @@ TEST(OptimizerTest, MultiplyExponentials) {
 }
 
 TEST(OptimizerTest, MultiplyPowers) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *two = CreateConstant(one_by_one, 2);
-  Instruction *pow1 = CreateBinary(kPower, x, two);
-  Instruction *four = CreateConstant(one_by_one, 4);
-  Instruction *pow2 = CreateBinary(kPower, x, four);
-  Instruction *mul = CreateBinary(kMultiply, pow1, pow2);
+  Instruction* two = CreateConstant(one_by_one, 2);
+  Instruction* pow1 = CreateBinary(kPower, x, two);
+  Instruction* four = CreateConstant(one_by_one, 4);
+  Instruction* pow2 = CreateBinary(kPower, x, four);
+  Instruction* mul = CreateBinary(kMultiply, pow1, pow2);
 
   Optimizer opt;
   opt.Run(mul);
@@ -196,12 +196,12 @@ TEST(OptimizerTest, MultiplyPowers) {
 }
 
 TEST(OptimizerTest, DividePowers) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *three = CreateConstant(one_by_one, 3);
-  Instruction *pow = CreateBinary(kPower, x, three);
-  Instruction *one = CreateConstant(one_by_one, 1);
-  Instruction *div = CreateBinary(kDivide, one, pow);
+  Instruction* three = CreateConstant(one_by_one, 3);
+  Instruction* pow = CreateBinary(kPower, x, three);
+  Instruction* one = CreateConstant(one_by_one, 1);
+  Instruction* div = CreateBinary(kDivide, one, pow);
 
   Optimizer opt;
   opt.Run(div);
@@ -210,10 +210,10 @@ TEST(OptimizerTest, DividePowers) {
 }
 
 TEST(OptimizerTest, DivideByConstantToMultiply) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *two = CreateConstant(one_by_one, 2);
-  Instruction *div = CreateBinary(kDivide, x, two);
+  Instruction* two = CreateConstant(one_by_one, 2);
+  Instruction* div = CreateBinary(kDivide, x, two);
 
   Optimizer opt;
   opt.Run(div);
@@ -222,11 +222,11 @@ TEST(OptimizerTest, DivideByConstantToMultiply) {
 }
 
 TEST(OptimizerTest, SineOverCosineToTangent) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *sin = CreateUnary(kSin, x);
-  Instruction *cos = CreateUnary(kCos, x);
-  Instruction *div = CreateBinary(kDivide, sin, cos);
+  Instruction* sin = CreateUnary(kSin, x);
+  Instruction* cos = CreateUnary(kCos, x);
+  Instruction* div = CreateBinary(kDivide, sin, cos);
 
   Optimizer opt;
   opt.Run(div);
@@ -235,10 +235,10 @@ TEST(OptimizerTest, SineOverCosineToTangent) {
 }
 
 TEST(OptimizerTest, CancelAbsExponential) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *exp = CreateUnary(kExp, x);
-  Instruction *abs = CreateUnary(kAbs, exp);
+  Instruction* exp = CreateUnary(kExp, x);
+  Instruction* abs = CreateUnary(kAbs, exp);
 
   Optimizer opt;
   opt.Run(abs);
@@ -247,13 +247,13 @@ TEST(OptimizerTest, CancelAbsExponential) {
 }
 
 TEST(OptimizerTest, FactorAddToMultiply) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *lhs = CreateBinary(kMultiply, x, y);
-  Instruction *rhs = CreateBinary(kMultiply, x, z);
-  Instruction *add = CreateBinary(kAdd, lhs, rhs);
+  Instruction* lhs = CreateBinary(kMultiply, x, y);
+  Instruction* rhs = CreateBinary(kMultiply, x, z);
+  Instruction* add = CreateBinary(kAdd, lhs, rhs);
 
   Optimizer opt;
   opt.Run(add);
@@ -261,9 +261,9 @@ TEST(OptimizerTest, FactorAddToMultiply) {
 }
 
 TEST(OptimizerTest, AddWithSameOperands) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *add = CreateBinary(kAdd, x, x);
+  Instruction* add = CreateBinary(kAdd, x, x);
 
   Optimizer opt;
   opt.Run(add);
@@ -271,12 +271,12 @@ TEST(OptimizerTest, AddWithSameOperands) {
 }
 
 TEST(OptimizerTest, DivideDivideToMultiply) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *div_lhs = CreateBinary(kDivide, CreateBinary(kDivide, x, y), z);
-  Instruction *div_rhs = CreateBinary(kDivide, x, CreateBinary(kDivide, y, z));
+  Instruction* div_lhs = CreateBinary(kDivide, CreateBinary(kDivide, x, y), z);
+  Instruction* div_rhs = CreateBinary(kDivide, x, CreateBinary(kDivide, y, z));
 
   Optimizer opt;
   opt.Run(div_lhs);
@@ -288,18 +288,18 @@ TEST(OptimizerTest, DivideDivideToMultiply) {
 
 // TODO This is just an instance of a homomorphism.
 TEST(OptimizerTest, ApplyMonotonicHomomorphism) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
 
-  Instruction *exp1 = CreateUnary(kExp, x);
-  Instruction *exp2 = CreateUnary(kExp, y);
-  Instruction *neg1 = CreateUnary(kNegate, x);
-  Instruction *neg2 = CreateUnary(kNegate, y);
+  Instruction* exp1 = CreateUnary(kExp, x);
+  Instruction* exp2 = CreateUnary(kExp, y);
+  Instruction* neg1 = CreateUnary(kNegate, x);
+  Instruction* neg2 = CreateUnary(kNegate, y);
 
-  Instruction *max1 = CreateBinary(kMaximum, exp1, exp2);
-  Instruction *max2 = CreateBinary(kMaximum, neg1, neg2);
-  Instruction *min1 = CreateBinary(kMinimum, exp1, exp2);
-  Instruction *min2 = CreateBinary(kMinimum, neg1, neg2);
+  Instruction* max1 = CreateBinary(kMaximum, exp1, exp2);
+  Instruction* max2 = CreateBinary(kMaximum, neg1, neg2);
+  Instruction* min1 = CreateBinary(kMinimum, exp1, exp2);
+  Instruction* min2 = CreateBinary(kMinimum, neg1, neg2);
 
   Optimizer opt;
   opt.Run(max1);
@@ -315,13 +315,13 @@ TEST(OptimizerTest, ApplyMonotonicHomomorphism) {
 }
 
 TEST(OptimizerTest, MultiplyLikePowersToPower) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *pow1 = CreateBinary(kPower, x, z);
-  Instruction *pow2 = CreateBinary(kPower, y, z);
-  Instruction *mul = CreateBinary(kMultiply, pow1, pow2);
+  Instruction* pow1 = CreateBinary(kPower, x, z);
+  Instruction* pow2 = CreateBinary(kPower, y, z);
+  Instruction* mul = CreateBinary(kMultiply, pow1, pow2);
 
   Optimizer opt;
   opt.Run(mul);
@@ -330,13 +330,13 @@ TEST(OptimizerTest, MultiplyLikePowersToPower) {
 }
 
 TEST(OptimizerTest, MultiplyLikeBaseToPower) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *pow1 = CreateBinary(kPower, x, y);
-  Instruction *pow2 = CreateBinary(kPower, x, z);
-  Instruction *mul = CreateBinary(kMultiply, pow1, pow2);
+  Instruction* pow1 = CreateBinary(kPower, x, y);
+  Instruction* pow2 = CreateBinary(kPower, x, z);
+  Instruction* mul = CreateBinary(kMultiply, pow1, pow2);
 
   Optimizer opt;
   opt.Run(mul);
@@ -344,11 +344,11 @@ TEST(OptimizerTest, MultiplyLikeBaseToPower) {
 }
 
 TEST(OptimizerTest, NegateSubtractToSubtract) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
 
-  Instruction *sub = CreateBinary(kSubtract, x, y);
-  Instruction *neg = CreateUnary(kNegate, sub);
+  Instruction* sub = CreateBinary(kSubtract, x, y);
+  Instruction* neg = CreateUnary(kNegate, sub);
 
   Optimizer opt;
   opt.Run(neg);
@@ -357,10 +357,10 @@ TEST(OptimizerTest, NegateSubtractToSubtract) {
 }
 
 TEST(OptimizerTest, PowerZeroToConstantOne) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *c = CreateConstant(one_by_one, 0);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 0);
 
-  Instruction *pow = CreateBinary(kPower, x, c);
+  Instruction* pow = CreateBinary(kPower, x, c);
 
   Optimizer opt;
   opt.Run(pow);
@@ -368,10 +368,10 @@ TEST(OptimizerTest, PowerZeroToConstantOne) {
 }
 
 TEST(OptimizerTest, PowerOneToParameter) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *c = CreateConstant(one_by_one, 1);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 1);
 
-  Instruction *pow = CreateBinary(kPower, x, c);
+  Instruction* pow = CreateBinary(kPower, x, c);
 
   Optimizer opt;
   opt.Run(pow);
@@ -379,10 +379,10 @@ TEST(OptimizerTest, PowerOneToParameter) {
 }
 
 TEST(OptimizerTest, ZeroPowerToConstantZero) {
-  Instruction *c = CreateConstant(one_by_one, 0);
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 0);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *pow = CreateBinary(kPower, c, x);
+  Instruction* pow = CreateBinary(kPower, c, x);
 
   Optimizer opt;
   opt.Run(pow);
@@ -390,10 +390,10 @@ TEST(OptimizerTest, ZeroPowerToConstantZero) {
 }
 
 TEST(OptimizerTest, OnePowerToConstantOne) {
-  Instruction *c = CreateConstant(one_by_one, 1);
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* c = CreateConstant(one_by_one, 1);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *pow = CreateBinary(kPower, c, x);
+  Instruction* pow = CreateBinary(kPower, c, x);
 
   Optimizer opt;
   opt.Run(pow);
@@ -401,12 +401,12 @@ TEST(OptimizerTest, OnePowerToConstantOne) {
 }
 
 TEST(OptimizerTest, PowerPowerToPowerMultiply) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *pow1 = CreateBinary(kPower, x, y);
-  Instruction *pow2 = CreateBinary(kPower, pow1, z);
+  Instruction* pow1 = CreateBinary(kPower, x, y);
+  Instruction* pow2 = CreateBinary(kPower, pow1, z);
 
   Optimizer opt;
   opt.Run(pow2);
@@ -418,11 +418,11 @@ TEST(OptimizerTest, PowerPowerToPowerMultiply) {
 }
 
 TEST(OptimizerTest, CancelTrigInverses) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *cos_acos = CreateUnary(kCos, CreateUnary(kAcos, x));
-  Instruction *sin_asin = CreateUnary(kSin, CreateUnary(kAsin, x));
-  Instruction *tan_atan = CreateUnary(kTan, CreateUnary(kAtan, x));
+  Instruction* cos_acos = CreateUnary(kCos, CreateUnary(kAcos, x));
+  Instruction* sin_asin = CreateUnary(kSin, CreateUnary(kAsin, x));
+  Instruction* tan_atan = CreateUnary(kTan, CreateUnary(kAtan, x));
 
   Optimizer opt;
   opt.Run(cos_acos);
@@ -434,14 +434,14 @@ TEST(OptimizerTest, CancelTrigInverses) {
 }
 
 TEST(OptimizerTest, CancelHyperbolicInverses) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *acosh_cosh = CreateUnary(kAcosh, CreateUnary(kCosh, x));
-  Instruction *asinh_sinh = CreateUnary(kAsinh, CreateUnary(kSinh, x));
-  Instruction *atanh_tanh = CreateUnary(kAtanh, CreateUnary(kTanh, x));
-  Instruction *cosh_acosh = CreateUnary(kCosh, CreateUnary(kAcosh, x));
-  Instruction *sinh_asinh = CreateUnary(kSinh, CreateUnary(kAsinh, x));
-  Instruction *tanh_atanh = CreateUnary(kTanh, CreateUnary(kAtanh, x));
+  Instruction* acosh_cosh = CreateUnary(kAcosh, CreateUnary(kCosh, x));
+  Instruction* asinh_sinh = CreateUnary(kAsinh, CreateUnary(kSinh, x));
+  Instruction* atanh_tanh = CreateUnary(kAtanh, CreateUnary(kTanh, x));
+  Instruction* cosh_acosh = CreateUnary(kCosh, CreateUnary(kAcosh, x));
+  Instruction* sinh_asinh = CreateUnary(kSinh, CreateUnary(kAsinh, x));
+  Instruction* tanh_atanh = CreateUnary(kTanh, CreateUnary(kAtanh, x));
 
   Optimizer opt;
   opt.Run(acosh_cosh);
@@ -459,20 +459,20 @@ TEST(OptimizerTest, CancelHyperbolicInverses) {
 }
 
 TEST(OptimizerTest, ApplyHomomorphisms) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
 
-  Instruction *add_logs =
+  Instruction* add_logs =
       CreateBinary(kAdd, CreateUnary(kLog, x), CreateUnary(kLog, y));
-  Instruction *div_abss =
+  Instruction* div_abss =
       CreateBinary(kDivide, CreateUnary(kAbs, x), CreateUnary(kAbs, y));
-  Instruction *div_exps =
+  Instruction* div_exps =
       CreateBinary(kDivide, CreateUnary(kExp, x), CreateUnary(kExp, y));
-  Instruction *mul_abss =
+  Instruction* mul_abss =
       CreateBinary(kMultiply, CreateUnary(kAbs, x), CreateUnary(kAbs, y));
-  Instruction *mul_exps =
+  Instruction* mul_exps =
       CreateBinary(kMultiply, CreateUnary(kExp, x), CreateUnary(kExp, y));
-  Instruction *sub_logs =
+  Instruction* sub_logs =
       CreateBinary(kSubtract, CreateUnary(kLog, x), CreateUnary(kLog, y));
 
   Optimizer opt;
@@ -497,11 +497,11 @@ TEST(OptimizerTest, ApplyHomomorphisms) {
 }
 
 TEST(OptimizerTest, MultiplyParameterPowerToPower) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *two = CreateConstant(one_by_one, 2);
-  Instruction *pow = CreateBinary(kPower, x, two);
-  Instruction *mul = CreateBinary(kMultiply, x, pow);
+  Instruction* two = CreateConstant(one_by_one, 2);
+  Instruction* pow = CreateBinary(kPower, x, two);
+  Instruction* mul = CreateBinary(kMultiply, x, pow);
 
   Optimizer opt;
   opt.Run(mul);
@@ -511,11 +511,11 @@ TEST(OptimizerTest, MultiplyParameterPowerToPower) {
 
 // TODO Generalize inverse cancellation to also handle this.
 TEST(OptimizerTest, SquareOfSquareRootToAbs) {
-  Instruction *x = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
 
-  Instruction *two = CreateConstant(one_by_one, 2);
-  Instruction *pow = CreateBinary(kPower, x, two);
-  Instruction *sqrt = CreateUnary(kSqrt, pow);
+  Instruction* two = CreateConstant(one_by_one, 2);
+  Instruction* pow = CreateBinary(kPower, x, two);
+  Instruction* sqrt = CreateUnary(kSqrt, pow);
 
   Optimizer opt;
   opt.Run(sqrt);
@@ -523,12 +523,12 @@ TEST(OptimizerTest, SquareOfSquareRootToAbs) {
 }
 
 TEST(OptimizerTest, MultiplyNegativeCancellation) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
 
-  Instruction *neg_x = CreateUnary(kNegate, x);
-  Instruction *neg_y = CreateUnary(kNegate, y);
-  Instruction *mul = CreateBinary(kMultiply, neg_x, neg_y);
+  Instruction* neg_x = CreateUnary(kNegate, x);
+  Instruction* neg_y = CreateUnary(kNegate, y);
+  Instruction* mul = CreateBinary(kMultiply, neg_x, neg_y);
 
   Optimizer opt;
   opt.Run(mul);
@@ -537,12 +537,12 @@ TEST(OptimizerTest, MultiplyNegativeCancellation) {
 }
 
 TEST(OptimizerTest, MultiplyDivideToMultiply) {
-  Instruction *x = CreateParameter(one_by_one);
-  Instruction *y = CreateParameter(one_by_one);
-  Instruction *z = CreateParameter(one_by_one);
+  Instruction* x = CreateParameter(one_by_one);
+  Instruction* y = CreateParameter(one_by_one);
+  Instruction* z = CreateParameter(one_by_one);
 
-  Instruction *div = CreateBinary(kDivide, y, z);
-  Instruction *mul = CreateBinary(kMultiply, x, div);
+  Instruction* div = CreateBinary(kDivide, y, z);
+  Instruction* mul = CreateBinary(kMultiply, x, div);
 
   Optimizer opt;
   opt.Run(mul);

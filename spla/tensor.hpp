@@ -51,26 +51,26 @@ class Tensor {
   Tensor(T default_value) : default_value_(default_value) {}  // NOLINT
 
   template <Arithmetic OtherT>
-  explicit Tensor(const Tensor<OtherT, shape...> &other)
+  explicit Tensor(const Tensor<OtherT, shape...>& other)
       : default_value_(static_cast<T>(other.default_value_)) {
-    for (const auto &[key, val] : other.data_) {
+    for (const auto& [key, val] : other.data_) {
       data_[key] = static_cast<T>(val);
     }
   }
 
   template <Arithmetic OtherT, typename UnaryOp>
-  Tensor(UnaryOp op, const Tensor<OtherT, shape...> &other)
+  Tensor(UnaryOp op, const Tensor<OtherT, shape...>& other)
       : default_value_(op(other.default_value_)) {
-    for (const auto &[key, val] : other.data_) {
+    for (const auto& [key, val] : other.data_) {
       data_[key] = op(val);
     }
   }
 
   template <Arithmetic OtherT, typename BinaryOp>
-  Tensor(BinaryOp op, const Tensor<OtherT, shape...> &lhs,
-         const Tensor<OtherT, shape...> &rhs)
+  Tensor(BinaryOp op, const Tensor<OtherT, shape...>& lhs,
+         const Tensor<OtherT, shape...>& rhs)
       : default_value_(op(lhs.default_value_, rhs.default_value_)) {
-    for (const auto &[key, lhs_val] : lhs.data_) {
+    for (const auto& [key, lhs_val] : lhs.data_) {
       if (auto it = rhs.data_.find(key); it != rhs.data_.end()) {
         // The key is in both lhs and rhs
         data_[key] = op(lhs_val, it->second);
@@ -79,7 +79,7 @@ class Tensor {
         data_[key] = op(lhs_val, rhs.default_value_);
       }
     }
-    for (const auto &[key, rhs_val] : rhs.data_) {
+    for (const auto& [key, rhs_val] : rhs.data_) {
       if (auto it = lhs.data_.find(key); it == lhs.data_.end()) {
         // The key is only in rhs
         data_[key] = op(lhs.default_value_, rhs_val);
@@ -96,11 +96,11 @@ class Tensor {
   // accidently written to `data_`.
   class SubscriptProxy {
    public:
-    SubscriptProxy(Tensor<T, shape...> *vec, Index idx)
+    SubscriptProxy(Tensor<T, shape...>* vec, Index idx)
         : vec_(vec), idx_(idx) {}
 
     // Handles tensor subscript assignment.
-    SubscriptProxy &operator=(const T &val) {
+    SubscriptProxy& operator=(const T& val) {
       vec_->data_[idx_] = val;
       return *this;
     }
@@ -122,7 +122,7 @@ class Tensor {
     }
 
    private:
-    Tensor<T, shape...> *vec_;
+    Tensor<T, shape...>* vec_;
     Index idx_;
   };
 
@@ -135,24 +135,24 @@ class Tensor {
   // Modifying Elementwise Operations //
   //////////////////////////////////////
 
-  auto &operator+=(const Tensor<T, shape...> &rhs) {
-    return this->apply_binary_inplace([](T &a, const T &b) { a += b; }, rhs);
+  auto& operator+=(const Tensor<T, shape...>& rhs) {
+    return this->apply_binary_inplace([](T& a, const T& b) { a += b; }, rhs);
   }
 
-  auto &operator-=(const Tensor<T, shape...> &rhs) {
-    return this->apply_binary_inplace([](T &a, const T &b) { a -= b; }, rhs);
+  auto& operator-=(const Tensor<T, shape...>& rhs) {
+    return this->apply_binary_inplace([](T& a, const T& b) { a -= b; }, rhs);
   }
 
-  auto &operator*=(const Tensor<T, shape...> &rhs) {
-    return this->apply_binary_inplace([](T &a, const T &b) { a *= b; }, rhs);
+  auto& operator*=(const Tensor<T, shape...>& rhs) {
+    return this->apply_binary_inplace([](T& a, const T& b) { a *= b; }, rhs);
   }
 
   ///////////////////
   // Miscellaneous //
   ///////////////////
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const Tensor<T, shape...> &vec) {
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const Tensor<T, shape...>& vec) {
     return os << std::format("{}", vec.data_);
   }
 
@@ -160,18 +160,18 @@ class Tensor {
 
   int64_t sparsity() const { return data_.size(); }
 
-  friend T reduce(const Tensor<T, shape...> &vec,
-                  std::function<void(T &, const T &)> op) {
+  friend T reduce(const Tensor<T, shape...>& vec,
+                  std::function<void(T&, const T&)> op) {
     T result = static_cast<T>(vec.default_value_ *
                               (vec.elements_in() - vec.sparsity()));
-    for (const auto &[_, val] : vec.data_) {
+    for (const auto& [_, val] : vec.data_) {
       op(result, val);
     }
     return result;
   }
 
-  friend auto pow(const Tensor<T, shape...> &lhs,
-                  const Tensor<T, shape...> &rhs) {
+  friend auto pow(const Tensor<T, shape...>& lhs,
+                  const Tensor<T, shape...>& rhs) {
     return Tensor<T, shape...>([](T a, T b) { return std::pow(a, b); }, lhs,
                                rhs);
   }
@@ -180,15 +180,15 @@ class Tensor {
   std::map<Index, T> data_;
   T default_value_;
 
-  auto &apply_binary_inplace(std::function<void(T &, const T &)> op,
-                             const Tensor<T, shape...> &rhs) {
-    for (auto &[key, lhs_val] : data_) {
+  auto& apply_binary_inplace(std::function<void(T&, const T&)> op,
+                             const Tensor<T, shape...>& rhs) {
+    for (auto& [key, lhs_val] : data_) {
       if (auto it = rhs.data_.find(key); it == rhs.data_.end()) {
         // The key is only in lhs
         op(lhs_val, rhs.default_value_);
       }
     }
-    for (const auto &[key, rhs_val] : rhs.data_) {
+    for (const auto& [key, rhs_val] : rhs.data_) {
       if (auto it = data_.find(key); it == data_.end()) {
         // The key is only in rhs
         data_[key] = default_value_;
@@ -205,38 +205,38 @@ class Tensor {
 //////////////////////////////////////////
 
 template <Arithmetic T, int64_t... shape>
-auto abs(const Tensor<T, shape...> &vec) {
+auto abs(const Tensor<T, shape...>& vec) {
   return Tensor<T, shape...>([](T a) { return std::abs(a); }, vec);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto exp(const Tensor<T, shape...> &vec) {
+auto exp(const Tensor<T, shape...>& vec) {
   return Tensor<T, shape...>([](T a) { return std::exp(a); }, vec);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto operator+(const Tensor<T, shape...> &lhs, const Tensor<T, shape...> &rhs) {
+auto operator+(const Tensor<T, shape...>& lhs, const Tensor<T, shape...>& rhs) {
   return Tensor<T, shape...>([](T a, T b) { return a + b; }, lhs, rhs);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto operator-(const Tensor<T, shape...> &lhs, const Tensor<T, shape...> &rhs) {
+auto operator-(const Tensor<T, shape...>& lhs, const Tensor<T, shape...>& rhs) {
   return Tensor<T, shape...>([](T a, T b) { return a - b; }, lhs, rhs);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto operator*(const Tensor<T, shape...> &lhs, const Tensor<T, shape...> &rhs) {
+auto operator*(const Tensor<T, shape...>& lhs, const Tensor<T, shape...>& rhs) {
   return Tensor<T, shape...>([](T a, T b) { return a * b; }, lhs, rhs);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto operator<(const Tensor<T, shape...> &lhs, const Tensor<T, shape...> &rhs) {
+auto operator<(const Tensor<T, shape...>& lhs, const Tensor<T, shape...>& rhs) {
   return Tensor<bool, shape...>([](T a, T b) { return a < b; }, lhs, rhs);
 }
 
 template <Arithmetic T, int64_t... shape>
-auto operator==(const Tensor<T, shape...> &lhs,
-                const Tensor<T, shape...> &rhs) {
+auto operator==(const Tensor<T, shape...>& lhs,
+                const Tensor<T, shape...>& rhs) {
   return Tensor<bool, shape...>([](T a, T b) { return a == b; }, lhs, rhs);
 }
 
@@ -245,27 +245,27 @@ auto operator==(const Tensor<T, shape...> &lhs,
 ///////////////////////
 
 template <int64_t... shape>
-bool all(const Tensor<bool, shape...> &vec) {
-  return reduce(vec, [](bool &a, const bool &b) { return a &= b; });
+bool all(const Tensor<bool, shape...>& vec) {
+  return reduce(vec, [](bool& a, const bool& b) { return a &= b; });
 }
 
 template <int64_t... shape>
-bool any(const Tensor<bool, shape...> &vec) {
-  return reduce(vec, [](bool &a, const bool &b) { a |= b; });
+bool any(const Tensor<bool, shape...>& vec) {
+  return reduce(vec, [](bool& a, const bool& b) { a |= b; });
 }
 
 template <Arithmetic T, int64_t... shape>
-T sum(const Tensor<T, shape...> &vec) {
-  return reduce(vec, [](T &a, const T &b) { a += b; });
+T sum(const Tensor<T, shape...>& vec) {
+  return reduce(vec, [](T& a, const T& b) { a += b; });
 }
 
 template <Arithmetic T, int64_t... shape>
-T dot(const Tensor<T, shape...> &lhs, const Tensor<T, shape...> &rhs) {
+T dot(const Tensor<T, shape...>& lhs, const Tensor<T, shape...>& rhs) {
   return sum(lhs * rhs);
 }
 
 template <Arithmetic T, int64_t... shape>
-double norm(const Tensor<T, shape...> &vec, int ord) {
+double norm(const Tensor<T, shape...>& vec, int ord) {
   return std::pow(sum(pow(abs(vec), ord)), 1.0 / ord);
 }
 

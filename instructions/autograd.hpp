@@ -4,8 +4,8 @@ class Autograd {
  private:
   // The derivative of f(g(x)) is f'(g(x))*g'(x) by the chain rule; this
   // function accepts f(g(x)) and returns f'(g(x))
-  static Instruction *ChainRuleHelper(Instruction *instruction) {
-    const Shape *shape = instruction->shape();
+  static Instruction* ChainRuleHelper(Instruction* instruction) {
+    const Shape* shape = instruction->shape();
     switch (instruction->opcode()) {
       case kAbs:
         return CreateBinary(kDivide, instruction, instruction->operand(0));
@@ -82,7 +82,7 @@ class Autograd {
   }
 
  public:
-  Instruction *Derivative(Instruction *instruction) {
+  Instruction* Derivative(Instruction* instruction) {
     switch (instruction->opcode()) {
       case kAbs:
       case kAcosh:

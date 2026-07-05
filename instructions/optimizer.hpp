@@ -6,7 +6,7 @@
 
 class Optimizer {
  public:
-  void Run(Instruction *instruction) {
+  void Run(Instruction* instruction) {
     bool changed;
     do {
       changed = false;
@@ -44,7 +44,7 @@ class Optimizer {
       // TODO Put above into HandlePruning
 
       // Recurse on the instruction's operands before optimizing this one
-      for (auto *operand : instruction->operands()) {
+      for (auto* operand : instruction->operands()) {
         Run(operand);
       }
 
@@ -64,7 +64,7 @@ class Optimizer {
   }
 
  private:
-  static std::function<bool(Instruction *)> GetHandleArity(int arity) {
+  static std::function<bool(Instruction*)> GetHandleArity(int arity) {
     switch (arity) {
       case 1:
         return HandleUnary;
@@ -75,7 +75,7 @@ class Optimizer {
     }
   }
 
-  static std::function<bool(Instruction *)> GetHandleOpcode(Opcode opcode) {
+  static std::function<bool(Instruction*)> GetHandleOpcode(Opcode opcode) {
     switch (opcode) {
       case kAdd:
         return HandleAdd;
@@ -98,10 +98,10 @@ class Optimizer {
     }
   }
 
-  static bool HandleUnary(Instruction *unary) {
+  static bool HandleUnary(Instruction* unary) {
     assert(Arity(unary->opcode()) == 1);
 
-    Instruction *operand = unary->operand(0);
+    Instruction* operand = unary->operand(0);
 
     // TODO Unify with analogous rewrite in HandleBinary
     if (AllConstantOperands(unary)) {
@@ -152,11 +152,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleBinary(Instruction *binary) {
+  static bool HandleBinary(Instruction* binary) {
     assert(Arity(binary->opcode()) == 2);
 
-    Instruction *lhs = binary->operand(0);
-    Instruction *rhs = binary->operand(1);
+    Instruction* lhs = binary->operand(0);
+    Instruction* rhs = binary->operand(1);
 
     // Fold operations whose every operand is constant
     if (AllConstantOperands(binary)) {
@@ -213,11 +213,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleAdd(Instruction *add) {
+  static bool HandleAdd(Instruction* add) {
     assert(add->opcode() == kAdd);
 
-    Instruction *lhs = add->operand(0);
-    Instruction *rhs = add->operand(1);
+    Instruction* lhs = add->operand(0);
+    Instruction* rhs = add->operand(1);
 
     if (IsConstantWithValue(lhs, 0)) {
       VLOG(10) << "x+0 --> x";
@@ -260,11 +260,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleDivide(Instruction *divide) {
+  static bool HandleDivide(Instruction* divide) {
     assert(divide->opcode() == kDivide);
 
-    Instruction *lhs = divide->operand(0);
-    Instruction *rhs = divide->operand(1);
+    Instruction* lhs = divide->operand(0);
+    Instruction* rhs = divide->operand(1);
 
     if (rhs->opcode() == kConstant) {
       VLOG(10) << "x/c --> x*c";
@@ -306,11 +306,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleMaximum(Instruction *maximum) {
+  static bool HandleMaximum(Instruction* maximum) {
     assert(maximum->opcode() == kMaximum);
 
-    Instruction *lhs = maximum->operand(0);
-    Instruction *rhs = maximum->operand(1);
+    Instruction* lhs = maximum->operand(0);
+    Instruction* rhs = maximum->operand(1);
 
     // TODO Unify monotone rewrites (with sublinear condition? instance of
     // homomorphism?)
@@ -332,11 +332,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleMinimum(Instruction *minimum) {
+  static bool HandleMinimum(Instruction* minimum) {
     assert(minimum->opcode() == kMinimum);
 
-    Instruction *lhs = minimum->operand(0);
-    Instruction *rhs = minimum->operand(1);
+    Instruction* lhs = minimum->operand(0);
+    Instruction* rhs = minimum->operand(1);
 
     if (lhs->opcode() == rhs->opcode() && IsIncreasing(lhs->opcode())) {
       VLOG(10) << "min(f(x), f(y)) --> f(min(x, y)) where f is increasing";
@@ -356,11 +356,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleMultiply(Instruction *multiply) {
+  static bool HandleMultiply(Instruction* multiply) {
     assert(multiply->opcode() == kMultiply);
 
-    Instruction *lhs = multiply->operand(0);
-    Instruction *rhs = multiply->operand(1);
+    Instruction* lhs = multiply->operand(0);
+    Instruction* rhs = multiply->operand(1);
 
     if (IsConstantWithValue(lhs, 0)) {
       VLOG(10) << "0*x --> 0";
@@ -437,10 +437,10 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleNegate(Instruction *negate) {
+  static bool HandleNegate(Instruction* negate) {
     assert(negate->opcode() == kNegate);
 
-    Instruction *operand = negate->operand(0);
+    Instruction* operand = negate->operand(0);
 
     if (operand->opcode() == kSubtract) {
       VLOG(10) << "-(x-y) --> y-x";
@@ -451,11 +451,11 @@ class Optimizer {
     return false;
   }
 
-  static bool HandlePower(Instruction *power) {
+  static bool HandlePower(Instruction* power) {
     assert(power->opcode() == kPower);
 
-    Instruction *lhs = power->operand(0);
-    Instruction *rhs = power->operand(1);
+    Instruction* lhs = power->operand(0);
+    Instruction* rhs = power->operand(1);
 
     if (IsConstantWithValue(rhs, 0)) {
       VLOG(10) << "pow(x,0) --> 1";
@@ -486,7 +486,7 @@ class Optimizer {
     return false;
   }
 
-  static bool HandleSubtract(Instruction *subtract) {
+  static bool HandleSubtract(Instruction* subtract) {
     assert(subtract->opcode() == kSubtract);
 
     // TODO pow(x,2)-pow(y,2) --> (x-y)*(x+y)

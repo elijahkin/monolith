@@ -8,15 +8,15 @@
 // switch to ABSL logging?
 class Logger {
  private:
-  const char *file_;
+  const char* file_;
   int line_;
   int verbosity_;
 
  public:
-  Logger(const char *file, int line, int verbosity)
+  Logger(const char* file, int line, int verbosity)
       : file_(file), line_(line), verbosity_(verbosity) {}
 
-  Logger &operator<<(const std::string &msg) {
+  Logger& operator<<(const std::string& msg) {
     if (verbosity_ <= MAX_VERBOSITY) {
       std::println("[{}:{}]: {}", file_, line_, msg);
     }

@@ -34,8 +34,8 @@ class Plotter {
     rgb_.resize(3 * num_pixels_);
   }
 
-  static void HslToRgb(const std::vector<double> &hsl,
-                       std::vector<uint8_t> &rgb, size_t num_pixels) {
+  static void HslToRgb(const std::vector<double>& hsl,
+                       std::vector<uint8_t>& rgb, size_t num_pixels) {
     double r, g, b;  // NOLINT
 
     for (size_t i = 0; i < num_pixels; ++i) {
@@ -88,7 +88,7 @@ class Plotter {
     }
   }
 
-  static void CreatePallete(std::vector<uint8_t> &palette, size_t max_iter) {
+  static void CreatePallete(std::vector<uint8_t>& palette, size_t max_iter) {
     std::vector<double> hsl(3 * max_iter);
 
     for (size_t i = 0; i < max_iter; ++i) {
@@ -103,8 +103,8 @@ class Plotter {
 
   static double Lerp(double a, double b, double t) { return a + (t * (b - a)); }
 
-  void SavePng(const std::string &filename) {
-    FILE *fp = fopen(filename.c_str(), "wb");
+  void SavePng(const std::string& filename) {
+    FILE* fp = fopen(filename.c_str(), "wb");
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr,
                                               nullptr, nullptr);
     png_infop info = png_create_info_struct(png);
@@ -124,7 +124,7 @@ class Plotter {
   }
 
   void Plot(T center_real, T center_imag, T apothem, size_t max_iter,
-            const std::string &name, const std::string &output_path = ".") {
+            const std::string& name, const std::string& output_path = ".") {
     // Compute the values needed for initialization
     const T min_real = center_real - apothem;
     const T max_imag = center_imag + (apothem * aspect_ratio_);

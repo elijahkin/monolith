@@ -10,7 +10,7 @@
 #include "gtest/gtest.h"
 
 // Abhinav's DFT for comparison
-void dft(std::vector<double> &x, std::vector<std::complex<double>> &output) {
+void dft(std::vector<double>& x, std::vector<std::complex<double>>& output) {
   const size_t N = x.size();
   double theta;
 

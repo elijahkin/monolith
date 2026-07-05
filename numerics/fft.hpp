@@ -26,7 +26,7 @@ template <class T>
 concept Ring = requires(T a, T b) {
   { a + b } -> std::same_as<T>;
   { a - b } -> std::same_as<T>;
-  { a *b } -> std::same_as<T>;
+  { a* b } -> std::same_as<T>;
   T{0};
   T{1};
 };
@@ -54,7 +54,7 @@ class FFTPlan {
     for (size_t m = 2; m <= N_; m *= 2) {
       const size_t half = m / 2;
       const size_t step = N_ / m;
-      auto &stage = twiddle_stages_.emplace_back(half);
+      auto& stage = twiddle_stages_.emplace_back(half);
       for (size_t k = 0; k < half; ++k) {
         stage[k] = twiddle_table[k * step];
       }
@@ -119,7 +119,7 @@ class FFTPlan {
   // TODO Doesn't this technically need a field instead of a ring?
   void normalize(std::span<T> x) {
     const T N_inv = T{1} / T(N_);
-    for (auto &v : x) {
+    for (auto& v : x) {
       v *= N_inv;
     }
   }

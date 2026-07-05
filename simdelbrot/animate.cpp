@@ -7,7 +7,7 @@
 #include "../util/io.hpp"
 #include "mandelbrot.hpp"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   const std::filesystem::path path = io::ResolveOutputPath(
       argc > 1 ? std::string_view{argv[1]} : std::string_view{});
 

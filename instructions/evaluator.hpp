@@ -3,9 +3,9 @@
 
 #include "instruction.hpp"
 
-double Evaluate(Instruction *instruction) {
+double Evaluate(Instruction* instruction) {
   std::vector<double> evaluated;
-  for (auto *operand : instruction->operands()) {
+  for (auto* operand : instruction->operands()) {
     evaluated.push_back(Evaluate(operand));
   }
 
@@ -31,7 +31,7 @@ double Evaluate(Instruction *instruction) {
     case kCbrt:
       return cbrt(evaluated[0]);
     case kConstant:
-      return static_cast<ConstantInstruction *>(instruction)->value();
+      return static_cast<ConstantInstruction*>(instruction)->value();
     case kCos:
       return cos(evaluated[0]);
     case kCosh:

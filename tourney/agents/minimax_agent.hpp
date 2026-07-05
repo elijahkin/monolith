@@ -73,7 +73,8 @@ class MinimaxAgent final : public Agent<Move> {
       Move maximize_buf[256];
       int maximize_n = this->state_.FillLegalMoves(maximize_buf, 256);
       for (int i = 0; i < maximize_n; ++i) {
-        value = std::max(value, AlphaBeta(maximize_buf[i], ply + 1, alpha, beta));
+        value =
+            std::max(value, AlphaBeta(maximize_buf[i], ply + 1, alpha, beta));
         if (value >= beta) {
           break;
         }
@@ -84,7 +85,8 @@ class MinimaxAgent final : public Agent<Move> {
       Move minimize_buf[256];
       int minimize_n = this->state_.FillLegalMoves(minimize_buf, 256);
       for (int i = 0; i < minimize_n; ++i) {
-        value = std::min(value, AlphaBeta(minimize_buf[i], ply + 1, alpha, beta));
+        value =
+            std::min(value, AlphaBeta(minimize_buf[i], ply + 1, alpha, beta));
         if (value <= alpha) {
           break;
         }
