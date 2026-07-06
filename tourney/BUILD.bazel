@@ -15,7 +15,7 @@ cc_library(
     ],
     deps = [
         "//tourney:contracts",
-        "//tourney/tree_search:minimax",
+        "//tourney/algorithms:minimax",
     ],
 )
 
@@ -23,8 +23,8 @@ cc_binary(
     name = "chess_benchmark",
     srcs = ["chess_benchmark.cpp"],
     deps = [
-        "//tourney/game_states:chess_state",
-        "//tourney/tree_search:perft",
+        "//tourney/algorithms:perft",
+        "//tourney/games:chess",
     ],
 )
 
@@ -33,6 +33,6 @@ cc_binary(
     srcs = ["chess_cli.cpp"],
     deps = [
         ":players",
-        "//tourney/game_states:chess_state",
+        "//tourney/games:chess",
     ],
 )

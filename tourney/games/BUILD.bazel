@@ -3,30 +3,30 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 GTEST_PATH = "@googletest//:gtest_main"
 
 cc_library(
-    name = "chess_state",
+    name = "chess",
     srcs = [
-        "chess_state.cpp",
+        "chess.cpp",
     ],
     hdrs = [
-        "chess_state.hpp",
+        "chess.hpp",
     ],
     visibility = ["//visibility:public"],
 )
 
 cc_test(
-    name = "chess_state_test",
+    name = "chess_test",
     size = "medium",
-    srcs = ["chess_state_test.cpp"],
+    srcs = ["chess_test.cpp"],
     deps = [
-        ":chess_state",
-        "//tourney/tree_search:perft",
+        ":chess",
+        "//tourney/algorithms:perft",
         GTEST_PATH,
     ],
 )
 
 cc_library(
-    name = "tictactoe_state",
+    name = "tictactoe",
     hdrs = [
-        "tictactoe_state.hpp",
+        "tictactoe.hpp",
     ],
 )

@@ -1,8 +1,8 @@
-#include "chess_state.hpp"
+#include "chess.hpp"
 
 #include <string_view>
 
-#include "../tree_search/perft.hpp"
+#include "../algorithms/perft.hpp"
 #include "gtest/gtest.h"
 
 // https://www.chessprogramming.org/Perft_Results

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include "algorithms/minimax.hpp"
 #include "contracts.hpp"
-#include "tree_search/minimax.hpp"
 
 // TODO Exists only so that `chess_cli` can hold a heterogeneous collection of
 // players (HumanPlayer + MinimaxPlayer) in one

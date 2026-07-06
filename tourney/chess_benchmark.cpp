@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <print>
 
-#include "game_states/chess_state.hpp"
-#include "tree_search/perft.hpp"
+#include "algorithms/perft.hpp"
+#include "games/chess.hpp"
 
 int main() {
   auto state = ChessState::initial_position();

@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-#include "game_states/chess_state.hpp"
+#include "games/chess.hpp"
 #include "players.hpp"
 
 std::function<Score(const ChessMove&)> black_advantage_on_capture =
