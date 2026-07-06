@@ -4,9 +4,11 @@
 #include <limits>
 #include <vector>
 
+#include "../contracts.hpp"
+
 using Score = double;
 
-template <typename State>
+template <GameState State>
 class MinimaxSearch {
  private:
   using Move = typename State::MoveT;

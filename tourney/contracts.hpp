@@ -1,29 +1,23 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <optional>
 #include <string>
 
-// TODO It might be better if the contracts are concepts rather than classes.
-// Would this eliminate virtual dispatching cost?
+// This concepts defines the necessary functions a game must implement in order
+// to connect to tourney. We use a C++20 concept rather than virtual base class
+// to completely eliminate the cost of virtual dispatch.
+template <typename T>
+concept GameState =
+    requires(T s, const T cs, typename T::MoveT m, typename T::MoveT* buf,
+             std::size_t cap, const std::string input) {
+      typename T::MoveT;
 
-// Defines the necessary functions to implement a game.
-template <typename Move>
-class Game {
- public:
-  virtual ~Game() = default;
-
-  virtual void MakeMove(const Move& move) = 0;
-
-  virtual void UnmakeMove(const Move& move) = 0;
-
-  [[nodiscard]] virtual size_t FillLegalMoves(Move* buffer,
-                                              size_t capacity) const = 0;
-
-  [[nodiscard]] virtual bool IsOver() const = 0;
-
-  [[nodiscard]] virtual std::string ToString() const = 0;
-
-  [[nodiscard]] virtual std::optional<Move> Parse(
-      const std::string& input) const = 0;
-};
+      { cs.FillLegalMoves(buf, cap) } -> std::same_as<std::size_t>;
+      { s.MakeMove(m) } -> std::same_as<void>;
+      { s.UnmakeMove(m) } -> std::same_as<void>;
+      { cs.IsOver() } -> std::same_as<bool>;
+      { cs.ToString() } -> std::same_as<std::string>;
+      { cs.Parse(input) } -> std::same_as<std::optional<typename T::MoveT>>;
+    };

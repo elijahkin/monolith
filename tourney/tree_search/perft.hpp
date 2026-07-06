@@ -1,12 +1,14 @@
 #include <cstddef>
 
+#include "../contracts.hpp"
+
 // Perft (performance test, move path enumeration) simply walks over a game tree
 // to count all the leaf nodes of a certain depth. It is primarily used for
 // ensuring the correctness and measuring the performance of move generation.
 //
 // https://www.chessprogramming.org/Perft
 
-template <typename State>
+template <GameState State>
 class PerftSearch {
  private:
   using Move = State::MoveT;

@@ -761,28 +761,17 @@ void ChessState::RecordMove(const ChessMove& move) {
 }
 
 void ChessState::MakeMove(const ChessMove& move) {
-  ChessMove m{move.from, move.to, move.promotion, move.piece, move.captured};
-  undo_stack_.push_back(make_move_impl(m, true));
+  undo_stack_.push_back(make_move_impl(move, true));
 }
 
 void ChessState::UnmakeMove(const ChessMove& move) {
-  ChessMove m{move.from, move.to, move.promotion, move.piece, move.captured};
-  unmake_move_impl(m, undo_stack_.back(), true);
+  unmake_move_impl(move, undo_stack_.back(), true);
   undo_stack_.pop_back();
 }
 
 size_t ChessState::FillLegalMoves(ChessMove* buffer, size_t capacity) const {
-  size_t n = legal_moves_fast(buffer);
   (void)capacity;
-  for (size_t i = 0; i < n; ++i) {
-    auto& m = buffer[i];
-    m.captured = board_[m.to];
-    if (m.captured == PieceType::kNone && m.promotion == PieceType::kNone &&
-        m.to == en_passant_square_) {
-      m.captured = PieceType::kPawn;
-    }
-  }
-  return n;
+  return legal_moves_fast(buffer);
 }
 
 bool ChessState::IsOver() const {

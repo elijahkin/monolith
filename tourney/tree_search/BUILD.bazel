@@ -6,6 +6,9 @@ cc_library(
         "minimax.hpp",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//tourney:contracts",
+    ],
 )
 
 cc_library(
@@ -14,4 +17,7 @@ cc_library(
         "perft.hpp",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//tourney:contracts",
+    ],
 )

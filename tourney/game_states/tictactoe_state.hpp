@@ -4,8 +4,6 @@
 #include <optional>
 #include <string>
 
-#include "../contracts.hpp"
-
 const std::string kCursorHome = "\x1B[H";
 const std::string kEraseScreen = "\x1B[2J";
 
@@ -18,22 +16,24 @@ struct TicTacToeMove {
 };
 
 // TODO Need to add a test for this class
-class TicTacToeState final : public Game<TicTacToeMove> {
+class TicTacToeState final {
  public:
+  using MoveT = TicTacToeMove;
+
   TicTacToeState() = default;
 
-  void MakeMove(const TicTacToeMove& move) override {
+  void MakeMove(const TicTacToeMove& move) {
     board_[move.square] = (x_to_move_ ? TtPiece::kX : TtPiece::kO);
     x_to_move_ = !x_to_move_;
   }
 
-  void UnmakeMove(const TicTacToeMove& move) override {
+  void UnmakeMove(const TicTacToeMove& move) {
     board_[move.square] = TtPiece::kEmpty;
     x_to_move_ = !x_to_move_;
   }
 
   [[nodiscard]] size_t FillLegalMoves(TicTacToeMove* buffer,
-                                      size_t capacity) const override {
+                                      size_t capacity) const {
     size_t n = 0;
     for (uint8_t i = 0; i < 9 && n < capacity; ++i) {
       if (board_[i] == TtPiece::kEmpty) {
@@ -43,7 +43,7 @@ class TicTacToeState final : public Game<TicTacToeMove> {
     return n;
   }
 
-  [[nodiscard]] bool IsOver() const override {
+  [[nodiscard]] bool IsOver() const {
     auto win = [&](int a, int b, int c) {
       return board_[a] != TtPiece::kEmpty && board_[a] == board_[b] &&
              board_[b] == board_[c];
@@ -64,10 +64,10 @@ class TicTacToeState final : public Game<TicTacToeMove> {
     return true;
   }
 
-  [[nodiscard]] std::string ToString() const override;
+  [[nodiscard]] std::string ToString() const;
 
   [[nodiscard]] std::optional<TicTacToeMove> Parse(
-      const std::string& input) const override;
+      const std::string& input) const;
 
  private:
   std::array<TtPiece, 9> board_{};

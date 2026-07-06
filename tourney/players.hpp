@@ -6,48 +6,51 @@
 #include "contracts.hpp"
 #include "tree_search/minimax.hpp"
 
+// TODO Exists only so that `chess_cli` can hold a heterogeneous collection of
+// players (HumanPlayer + MinimaxPlayer) in one
+// `std::vector<unique_ptr<PlayerBase<Move>>>`. Is this the right design choice?
+// Maybe a concept for players could make sense as well?
 template <typename Move>
-class Player {
+class PlayerBase {
  public:
-  explicit Player(Game<Move>& state) : state_(state) {}
-
-  virtual ~Player() = default;
+  explicit PlayerBase() = default;
+  virtual ~PlayerBase() = default;
 
   [[nodiscard]] virtual Move SelectMove() = 0;
-
- protected:
-  Game<Move>& state_;
 };
 
-template <typename Move>
-class HumanPlayer final : public Player<Move> {
+template <GameState State>
+class HumanPlayer final : public PlayerBase<typename State::MoveT> {
+  using Move = typename State::MoveT;
+
  public:
-  explicit HumanPlayer(Game<Move>& state) : Player<Move>(state) {}
+  explicit HumanPlayer(State& state) : state_(state) {}
 
   Move SelectMove() override {
     std::string input;
     while (true) {
       std::cout << "Please enter a move: ";
       std::cin >> input;
-      auto parsed = this->state_.Parse(input);
+      auto parsed = state_.Parse(input);
       if (parsed.has_value()) {
         return parsed.value();
-        break;
       }
       std::cout << "Invalid entry! ";
     }
   }
+
+ private:
+  State& state_;
 };
 
-template <typename State>
-class MinimaxPlayer final : public Player<typename State::MoveT> {
+template <GameState State>
+class MinimaxPlayer final : public PlayerBase<typename State::MoveT> {
   using Move = typename State::MoveT;
 
  public:
   MinimaxPlayer(State& state, int max_plies,
                 std::function<Score(const Move&)> heuristic_value_adjustment)
-      : Player<Move>(state),
-        search_(state, max_plies, heuristic_value_adjustment) {}
+      : search_(state, max_plies, heuristic_value_adjustment) {}
 
   Move SelectMove() override {
     std::cout << "Minimax player is thinking...\n";

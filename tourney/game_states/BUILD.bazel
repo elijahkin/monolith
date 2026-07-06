@@ -11,9 +11,6 @@ cc_library(
         "chess_state.hpp",
     ],
     visibility = ["//visibility:public"],
-    deps = [
-        "//tourney:contracts",
-    ],
 )
 
 cc_test(
@@ -31,8 +28,5 @@ cc_library(
     name = "tictactoe_state",
     hdrs = [
         "tictactoe_state.hpp",
-    ],
-    deps = [
-        "//tourney:contracts",
     ],
 )

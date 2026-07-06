@@ -19,8 +19,8 @@ std::function<Score(const ChessMove&)> black_advantage_on_capture =
 int main() {
   auto game = ChessState::initial_position();
 
-  std::vector<std::unique_ptr<Player<ChessMove>>> agents;
-  agents.push_back(std::make_unique<HumanPlayer<ChessMove>>(game));
+  std::vector<std::unique_ptr<PlayerBase<ChessMove>>> agents;
+  agents.push_back(std::make_unique<HumanPlayer<ChessState>>(game));
   agents.push_back(std::make_unique<MinimaxPlayer<ChessState>>(
       game, 5, black_advantage_on_capture));
 

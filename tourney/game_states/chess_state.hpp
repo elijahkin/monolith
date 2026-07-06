@@ -9,8 +9,6 @@
 #include <string_view>
 #include <vector>
 
-#include "../contracts.hpp"
-
 enum class PieceType : uint8_t {
   kNone,
   kPawn,
@@ -41,7 +39,7 @@ struct ChessMove {
         captured(captured) {}
 };
 
-class ChessState : public Game<ChessMove> {
+class ChessState final {
  public:
   using MoveT = ChessMove;
 
@@ -65,14 +63,12 @@ class ChessState : public Game<ChessMove> {
   static ChessState from_fen(std::string_view fen);
   [[nodiscard]] std::string to_fen() const;
 
-  void MakeMove(const ChessMove& move) override;
-  void UnmakeMove(const ChessMove& move) override;
-  [[nodiscard]] std::string ToString() const override;
-  [[nodiscard]] std::optional<ChessMove> Parse(
-      const std::string& input) const override;
-  [[nodiscard]] size_t FillLegalMoves(ChessMove* buffer,
-                                      size_t capacity) const override;
-  [[nodiscard]] bool IsOver() const override;
+  void MakeMove(const ChessMove& move);
+  void UnmakeMove(const ChessMove& move);
+  [[nodiscard]] std::string ToString() const;
+  [[nodiscard]] std::optional<ChessMove> Parse(const std::string& input) const;
+  [[nodiscard]] size_t FillLegalMoves(ChessMove* buffer, size_t capacity) const;
+  [[nodiscard]] bool IsOver() const;
   void RecordMove(const ChessMove& move);
 
   // Fast perft without vector allocations or virtual dispatch
