@@ -27,17 +27,3 @@ class Game {
   [[nodiscard]] virtual std::optional<Move> Parse(
       const std::string& input) const = 0;
 };
-
-// Defines the necessary functions to implement an agent.
-template <typename Move>
-class Agent {
- public:
-  explicit Agent(Game<Move>& state) : state_(state) {}
-
-  virtual ~Agent() = default;
-
-  [[nodiscard]] virtual Move SelectMove() = 0;
-
- protected:
-  Game<Move>& state_;
-};

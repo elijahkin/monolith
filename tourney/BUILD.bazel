@@ -8,6 +8,17 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "players",
+    hdrs = [
+        "players.hpp",
+    ],
+    deps = [
+        "//tourney:contracts",
+        "//tourney/tree_search:minimax",
+    ],
+)
+
 cc_binary(
     name = "chess_benchmark",
     srcs = ["chess_benchmark.cpp"],
@@ -21,9 +32,7 @@ cc_binary(
     name = "chess_cli",
     srcs = ["chess_cli.cpp"],
     deps = [
-        ":contracts",
-        "//tourney/agents:human_agent",
-        "//tourney/agents:minimax_agent",
+        ":players",
         "//tourney/game_states:chess_state",
     ],
 )

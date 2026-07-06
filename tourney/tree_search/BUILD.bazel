@@ -1,6 +1,14 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
+    name = "minimax",
+    hdrs = [
+        "minimax.hpp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "perft",
     hdrs = [
         "perft.hpp",

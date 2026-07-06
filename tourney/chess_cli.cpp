@@ -7,10 +7,8 @@
 #include <memory>
 #include <vector>
 
-#include "agents/human_agent.hpp"
-#include "agents/minimax_agent.hpp"
-#include "contracts.hpp"
 #include "game_states/chess_state.hpp"
+#include "players.hpp"
 
 std::function<Score(const ChessMove&)> black_advantage_on_capture =
     [](const ChessMove& move) {
@@ -21,9 +19,9 @@ std::function<Score(const ChessMove&)> black_advantage_on_capture =
 int main() {
   auto game = ChessState::initial_position();
 
-  std::vector<std::unique_ptr<Agent<ChessMove>>> agents;
-  agents.push_back(std::make_unique<HumanAgent<ChessMove>>(game));
-  agents.push_back(std::make_unique<MinimaxAgent<ChessMove>>(
+  std::vector<std::unique_ptr<Player<ChessMove>>> agents;
+  agents.push_back(std::make_unique<HumanPlayer<ChessMove>>(game));
+  agents.push_back(std::make_unique<MinimaxPlayer<ChessState>>(
       game, 5, black_advantage_on_capture));
 
   while (true) {
