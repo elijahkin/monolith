@@ -1,10 +1,9 @@
 # Tourney
 
-Tourney is an library for implementing games as well as agents to play them. The
-fundamental classes are `Game` and `Agent`. A game (such as chess, go, etc.) can
-be added by deriving from the former and implementing each of its virtual
-functions. In contrast, agents are the objects which play the game; for example,
-the `HumanAgent` prompts the user for input, while `MinimaxAgent` searches the
+Tourney is a library for implementing games as well as agents to play them. A
+game (such as chess, tic-tac-toe, etc.) is added by satisfying the `GameState`.
+In contrast, agents are the objects which play the game; for example,
+`HumanPlayer` prompts the user for input, while `MinimaxPlayer` searches the
 game tree for optimal moves.
 
 [Minimax](https://en.wikipedia.org/wiki/Minimax) and its variations are a
@@ -14,47 +13,43 @@ adversarial game as simple as possible.
 
 ## Work in Progress
 
-We divide work broadly into that which pertains specifically to `chess.hpp` and
-that which does not.
+We divide work broadly into that which pertains specifically to chess and that
+which does not.
 
 ### Chess-specific Work
 
-- Refactor to use a
-  [bitboard](https://en.wikipedia.org/wiki/Bitboard#Chess_bitboards)
-  architecture for move generation. This will be tedious but (hopefully) worth
-  the effort.
-  - Upon switching to bitboards, use `__builtin_popcountll` based evaluation
-    functions.
 - Implement the
   [fifty-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule). Note:
-  `ChessState::make_move_impl` intentionally does not maintain `halfmove_clock_`
-  (or `fullmove_number_`) on either the perft or interactive move-application
-  path, since the values would go stale during search-tree traversal and no
-  current caller relies on them after `MakeMove`. A future implementation of
-  this rule will need to either restore clock updates on the interactive path or
-  compute the halfmove counter from a recorded move history.
-- Implement special moves: pawn promotions, en passant capture, and castling.
-  Ensure `Parse` and `GetAlgebraicNotation` are updated appropriately as well.
-- Add unit tests to guarantee correctness.
-- Fix problem with knight move generation.
-- Generalize parsing of algebraic notation to allow disambiguation via
-  specification of the `from` square.
+  `ChessState::MakeMove` intentionally does not maintain `halfmove_clock_` (or
+  `fullmove_number_`) on either the perft or interactive move-application path,
+  since the values would go stale during search-tree traversal and no current
+  caller relies on them after `MakeMove`. A future implementation of this rule
+  will need to either restore clock updates on the interactive path or compute
+  the halfmove counter from a recorded move history.
+- Ensure `Parse` and `get_algebraic_notation` follow standard conventions and
+  cleanly resolve ambiguities. We should probably add thorough testing for this.
+- Build out the command line interface. It would be nice to have a move
+  selection menu which uses arrow keys.
 
 ### General Work
 
-- Consider switching `MinimaxAgent` to use the
-  [negamax algorithm](https://en.wikipedia.org/wiki/Negamax) to avoid branching.
+- Add extensive testing (perhaps using a trivial game) of `MinimaxSearch`.
+- Add benchmarking of `MinimaxSearch` in `chess_benchmark.cpp`. Once we can
+  benchmark, we can then explore if switching to
+  [negamax algorithm](https://en.wikipedia.org/wiki/Negamax) to avoid branching
+  would be a meaningful improvement. We should also be able to configure whether
+  to use alpha-beta pruning.
+- Finally, we can then explore other avenues of improvement: transposition
+  tables, quiescence search, iterative deepening, random optimal move selection.
 - Make `history_` a vector of moves instead of a vector of strings. Then, if
   it's not _too_ expensive, we could use this to eliminate `RecordMove` (but
   would require recording the move even if it's not yet selected).
-- Consider avenues of improvement for `MinimaxAgent`: iterative deepening,
-  transposition tables, random optimal move selection
-- Implement `RandomAgent`, which selects uniformly from the set of possible
+- Implement `RandomPlayer`, which selects uniformly from the set of possible
   moves.
 - Design a tournament and ELO system to have many agents compete against each
   other.
 - Implement other games: dots and boxes, 2048, blackjack, and poker.
-- Consider whether declaring a `namespace tourney` would be appropriate
+- Consider whether declaring a `namespace tourney` would be appropriate.
 - Address any reported clang-tidy issues. Judicious use of `// NOLINT` is
   permissible.
 - Continuously rewrite code to make it as self-documenting as possible. Resort

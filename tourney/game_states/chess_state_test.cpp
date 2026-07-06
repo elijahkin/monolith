@@ -2,20 +2,22 @@
 
 #include <string_view>
 
+#include "../tree_search/perft.hpp"
 #include "gtest/gtest.h"
 
 // https://www.chessprogramming.org/Perft_Results
 
 TEST(ChessStateTest, InitialPosition) {
   auto position = ChessState::initial_position();
+  PerftSearch<ChessState> perft(position);
 
-  EXPECT_EQ(position.PerftFast(0), 1UL);
-  EXPECT_EQ(position.PerftFast(1), 20UL);
-  EXPECT_EQ(position.PerftFast(2), 400UL);
-  EXPECT_EQ(position.PerftFast(3), 8'902UL);
-  EXPECT_EQ(position.PerftFast(4), 197'281UL);
-  EXPECT_EQ(position.PerftFast(5), 4'865'609UL);
-  EXPECT_EQ(position.PerftFast(6), 119'060'324UL);
+  EXPECT_EQ(perft.search(0), 1UL);
+  EXPECT_EQ(perft.search(1), 20UL);
+  EXPECT_EQ(perft.search(2), 400UL);
+  EXPECT_EQ(perft.search(3), 8'902UL);
+  EXPECT_EQ(perft.search(4), 197'281UL);
+  EXPECT_EQ(perft.search(5), 4'865'609UL);
+  EXPECT_EQ(perft.search(6), 119'060'324UL);
 }
 
 TEST(ChessStateTest, Position2) {
@@ -25,11 +27,13 @@ TEST(ChessStateTest, Position2) {
   auto position = ChessState::from_fen(kFen);
   EXPECT_EQ(position.to_fen(), kFen);
 
-  EXPECT_EQ(position.PerftFast(1), 48UL);
-  EXPECT_EQ(position.PerftFast(2), 2'039UL);
-  EXPECT_EQ(position.PerftFast(3), 97'862UL);
-  EXPECT_EQ(position.PerftFast(4), 4'085'603UL);
-  EXPECT_EQ(position.PerftFast(5), 193'690'690UL);
+  PerftSearch<ChessState> perft(position);
+
+  EXPECT_EQ(perft.search(1), 48UL);
+  EXPECT_EQ(perft.search(2), 2'039UL);
+  EXPECT_EQ(perft.search(3), 97'862UL);
+  EXPECT_EQ(perft.search(4), 4'085'603UL);
+  EXPECT_EQ(perft.search(5), 193'690'690UL);
 }
 
 TEST(ChessStateTest, Position3) {
@@ -38,12 +42,14 @@ TEST(ChessStateTest, Position3) {
   auto position = ChessState::from_fen(kFen);
   EXPECT_EQ(position.to_fen(), kFen);
 
-  EXPECT_EQ(position.PerftFast(1), 14UL);
-  EXPECT_EQ(position.PerftFast(2), 191UL);
-  EXPECT_EQ(position.PerftFast(3), 2'812UL);
-  EXPECT_EQ(position.PerftFast(4), 43'238UL);
-  EXPECT_EQ(position.PerftFast(5), 674'624UL);
-  EXPECT_EQ(position.PerftFast(6), 11'030'083UL);
+  PerftSearch<ChessState> perft(position);
+
+  EXPECT_EQ(perft.search(1), 14UL);
+  EXPECT_EQ(perft.search(2), 191UL);
+  EXPECT_EQ(perft.search(3), 2'812UL);
+  EXPECT_EQ(perft.search(4), 43'238UL);
+  EXPECT_EQ(perft.search(5), 674'624UL);
+  EXPECT_EQ(perft.search(6), 11'030'083UL);
 }
 
 TEST(ChessStateTest, Position4) {
@@ -53,11 +59,13 @@ TEST(ChessStateTest, Position4) {
   auto position = ChessState::from_fen(kFen);
   EXPECT_EQ(position.to_fen(), kFen);
 
-  EXPECT_EQ(position.PerftFast(1), 6UL);
-  EXPECT_EQ(position.PerftFast(2), 264UL);
-  EXPECT_EQ(position.PerftFast(3), 9'467UL);
-  EXPECT_EQ(position.PerftFast(4), 422'333UL);
-  EXPECT_EQ(position.PerftFast(5), 15'833'292UL);
+  PerftSearch<ChessState> perft(position);
+
+  EXPECT_EQ(perft.search(1), 6UL);
+  EXPECT_EQ(perft.search(2), 264UL);
+  EXPECT_EQ(perft.search(3), 9'467UL);
+  EXPECT_EQ(perft.search(4), 422'333UL);
+  EXPECT_EQ(perft.search(5), 15'833'292UL);
 }
 
 TEST(ChessStateTest, Position5) {
@@ -67,11 +75,13 @@ TEST(ChessStateTest, Position5) {
   auto position = ChessState::from_fen(kFen);
   EXPECT_EQ(position.to_fen(), kFen);
 
-  EXPECT_EQ(position.PerftFast(1), 44UL);
-  EXPECT_EQ(position.PerftFast(2), 1'486UL);
-  EXPECT_EQ(position.PerftFast(3), 62'379UL);
-  EXPECT_EQ(position.PerftFast(4), 2'103'487UL);
-  EXPECT_EQ(position.PerftFast(5), 89'941'194UL);
+  PerftSearch<ChessState> perft(position);
+
+  EXPECT_EQ(perft.search(1), 44UL);
+  EXPECT_EQ(perft.search(2), 1'486UL);
+  EXPECT_EQ(perft.search(3), 62'379UL);
+  EXPECT_EQ(perft.search(4), 2'103'487UL);
+  EXPECT_EQ(perft.search(5), 89'941'194UL);
 }
 
 TEST(ChessStateTest, Position6) {
@@ -82,9 +92,11 @@ TEST(ChessStateTest, Position6) {
   auto position = ChessState::from_fen(kFen);
   EXPECT_EQ(position.to_fen(), kFen);
 
-  EXPECT_EQ(position.PerftFast(1), 46UL);
-  EXPECT_EQ(position.PerftFast(2), 2'079UL);
-  EXPECT_EQ(position.PerftFast(3), 89'890UL);
-  EXPECT_EQ(position.PerftFast(4), 3'894'594UL);
-  EXPECT_EQ(position.PerftFast(5), 164'075'551UL);
+  PerftSearch<ChessState> perft(position);
+
+  EXPECT_EQ(perft.search(1), 46UL);
+  EXPECT_EQ(perft.search(2), 2'079UL);
+  EXPECT_EQ(perft.search(3), 89'890UL);
+  EXPECT_EQ(perft.search(4), 3'894'594UL);
+  EXPECT_EQ(perft.search(5), 164'075'551UL);
 }

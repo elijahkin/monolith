@@ -32,7 +32,8 @@ int main() {
       }
       const auto move = agent_ptr->SelectMove();
       game.RecordMove(move);
-      game.MakeMove(move);
+      ChessState::MoveUndo undo;
+      game.MakeMove(move, undo);
     }
   }
 }

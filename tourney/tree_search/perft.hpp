@@ -38,9 +38,10 @@ class PerftSearch {
     // unmaking it before moving on to the next.
     size_t nodes = 0;
     for (size_t i = 0; i < n; ++i) {
-      state_.MakeMove(moves[i]);
+      typename State::MoveUndo undo;
+      state_.MakeMove(moves[i], undo);
       nodes += search(depth - 1);
-      state_.UnmakeMove(moves[i]);
+      state_.UnmakeMove(moves[i], undo);
     }
     return nodes;
   }

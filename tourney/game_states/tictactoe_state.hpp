@@ -20,14 +20,18 @@ class TicTacToeState final {
  public:
   using MoveT = TicTacToeMove;
 
+  // TicTacToe's unmake is fully derivable from the move itself; no extra undo
+  // state required.
+  struct MoveUndo {};
+
   TicTacToeState() = default;
 
-  void MakeMove(const TicTacToeMove& move) {
+  void MakeMove(const TicTacToeMove& move, MoveUndo /*undo*/) {
     board_[move.square] = (x_to_move_ ? TtPiece::kX : TtPiece::kO);
     x_to_move_ = !x_to_move_;
   }
 
-  void UnmakeMove(const TicTacToeMove& move) {
+  void UnmakeMove(const TicTacToeMove& move, MoveUndo /*undo*/) {
     board_[move.square] = TtPiece::kEmpty;
     x_to_move_ = !x_to_move_;
   }

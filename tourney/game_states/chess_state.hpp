@@ -50,32 +50,18 @@ class ChessState final {
     int old_halfmove_clock;
   };
 
-  // Core move application. When `keep_board` is true, the `board_` mailbox is
-  // kept in sync for callers that inspect positions via `piece_type_at`,
-  // `to_fen`, or `ToString`. The perft path passes false to skip the mailbox
-  // writes, which are dead weight during pure node counting.
-  // Note: halfmove_clock_ and fullmove_number_ are intentionally not updated
-  // here; no current caller relies on them after a search tree traversal.
-  MoveUndo make_move_impl(ChessMove m, bool keep_board);
-  void unmake_move_impl(ChessMove m, const MoveUndo& undo, bool keep_board);
+  void MakeMove(const ChessMove& move, MoveUndo& undo);
+  void UnmakeMove(const ChessMove& move, const MoveUndo& undo);
 
   static ChessState initial_position();
   static ChessState from_fen(std::string_view fen);
   [[nodiscard]] std::string to_fen() const;
 
-  void MakeMove(const ChessMove& move);
-  void UnmakeMove(const ChessMove& move);
   [[nodiscard]] std::string ToString() const;
   [[nodiscard]] std::optional<ChessMove> Parse(const std::string& input) const;
   [[nodiscard]] size_t FillLegalMoves(ChessMove* buffer, size_t capacity) const;
   [[nodiscard]] bool IsOver() const;
   void RecordMove(const ChessMove& move);
-
-  // Fast perft without vector allocations or virtual dispatch
-  [[nodiscard]] size_t PerftFast(size_t depth);
-
-  // Fill pre-allocated buffer with legal moves, returns count
-  size_t legal_moves_fast(ChessMove* moves) const;
 
  private:
   enum class Color : uint8_t { kWhite, kBlack };
@@ -237,13 +223,11 @@ class ChessState final {
 
   std::array<Bitboard, 7> pieces_{};
   std::array<Bitboard, 2> colors_{};
-  std::array<PieceType, 64> board_{};
   Color side_to_move_ = Color::kWhite;
   uint8_t castling_rights_ = 0xF;
   int en_passant_square_ = -1;
   int halfmove_clock_ = 0;
   int fullmove_number_ = 1;
 
-  std::vector<MoveUndo> undo_stack_;
   std::vector<std::string> history_;
 };

@@ -25,13 +25,14 @@ class MinimaxSearch {
 
   // https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode
   Score AlphaBeta(const Move& move, int ply, Score alpha, Score beta) {
-    state_.MakeMove(move);
+    typename State::MoveUndo undo;
+    state_.MakeMove(move, undo);
     heuristic_value_ += heuristic_value_adjustment_(move);
 
     if (ply == max_plies_) {
       const Score leaf_value = heuristic_value_;
       leaf_nodes_count_++;
-      state_.UnmakeMove(move);
+      state_.UnmakeMove(move, undo);
       heuristic_value_ -= heuristic_value_adjustment_(move);
       return leaf_value;
     }
@@ -60,7 +61,7 @@ class MinimaxSearch {
         beta = std::min(beta, value);
       }
     }
-    state_.UnmakeMove(move);
+    state_.UnmakeMove(move, undo);
     heuristic_value_ -= heuristic_value_adjustment_(move);
     return value;
   }
