@@ -7,7 +7,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 
 enum class PieceType : uint8_t {
   kNone,
@@ -55,13 +54,11 @@ class ChessState final {
 
   static ChessState initial_position();
   static ChessState from_fen(std::string_view fen);
-  [[nodiscard]] std::string to_fen() const;
 
   [[nodiscard]] std::string ToString() const;
   [[nodiscard]] std::optional<ChessMove> Parse(const std::string& input) const;
   [[nodiscard]] size_t FillLegalMoves(ChessMove* buffer, size_t capacity) const;
   [[nodiscard]] bool IsOver() const;
-  void RecordMove(const ChessMove& move);
 
  private:
   enum class Color : uint8_t { kWhite, kBlack };
@@ -114,7 +111,7 @@ class ChessState final {
   template <Color kBy>
   [[gnu::always_inline]] [[nodiscard]] inline bool is_attacked(
       int sq, Bitboard slider_occ, Bitboard ignore = 0) const {
-    constexpr size_t kByI = static_cast<size_t>(kBy);
+    constexpr auto kByI = static_cast<size_t>(kBy);
     constexpr size_t kOther = 1 - kByI;
 
     Bitboard enemy = colors_[kByI] & ~ignore;
@@ -161,7 +158,7 @@ class ChessState final {
   template <Color kThem>
   [[gnu::always_inline]] [[nodiscard]] inline Bitboard compute_checkers(
       int king_sq) const {
-    constexpr size_t kThemI = static_cast<size_t>(kThem);
+    constexpr auto kThemI = static_cast<size_t>(kThem);
     constexpr size_t kUs = 1 - kThemI;
     Bitboard them_bb = colors_[kThemI];
     Bitboard occ = occupied();
@@ -207,8 +204,9 @@ class ChessState final {
       return 0;
     }
 
-    Bitboard rook_pinners = rook_targets(king_sq, them_bb) & enemy_rooks;
-    Bitboard bishop_pinners = bishop_targets(king_sq, them_bb) & enemy_bishops;
+    const Bitboard rook_pinners = rook_targets(king_sq, them_bb) & enemy_rooks;
+    const Bitboard bishop_pinners =
+        bishop_targets(king_sq, them_bb) & enemy_bishops;
 
     Bitboard pinners = rook_pinners | bishop_pinners;
     Bitboard pinned = 0;
@@ -216,8 +214,8 @@ class ChessState final {
     while (pinners) {
       const int psq = std::countr_zero(pinners);
       pinners &= pinners - 1;
-      Bitboard between = between_bb(king_sq, psq);
-      Bitboard friends = between & us_bb;
+      const Bitboard between = between_bb(king_sq, psq);
+      const Bitboard friends = between & us_bb;
       if (friends && !(friends & (friends - 1))) {
         const int fsq = std::countr_zero(friends);
         pinned |= square_bb(fsq);
@@ -279,8 +277,8 @@ class ChessState final {
       ChessMove*& out, Bitboard pinned_bb, const Bitboard* pin_rays,
       Bitboard target_mask) const {
     Bitboard pawns = pieces_[static_cast<size_t>(PieceType::kPawn)] & us();
-    Bitboard occ = occupied();
-    Bitboard them_bb = them();
+    const Bitboard occ = occupied();
+    const Bitboard them_bb = them();
     constexpr int kPushDir = kWhite ? 8 : -8;
     constexpr int kStartRank = kWhite ? 1 : 6;
     constexpr int kPromoRank = kWhite ? 6 : 1;
@@ -291,7 +289,7 @@ class ChessState final {
       pawns &= pawns - 1;
       const int r = sq / 8;
       const bool pinned = (pinned_bb & square_bb(sq)) != 0;
-      Bitboard pin_ray = pinned && pin_rays ? pin_rays[sq] : ~Bitboard{0};
+      const Bitboard pin_ray = pinned && pin_rays ? pin_rays[sq] : ~Bitboard{0};
 
       int push_sq = sq + kPushDir;
       Bitboard push_bb = square_bb(push_sq);
@@ -496,8 +494,6 @@ class ChessState final {
   }
 
   [[nodiscard]] PieceType piece_type_at(int sq) const;
-  [[nodiscard]] const char* to_unicode(int sq) const;
-  [[nodiscard]] std::string get_algebraic_notation(const ChessMove& move) const;
 
   std::array<Bitboard, 7> pieces_{};
   std::array<Bitboard, 2> colors_{};
@@ -506,6 +502,4 @@ class ChessState final {
   int en_passant_square_ = -1;
   int halfmove_clock_ = 0;
   int fullmove_number_ = 1;
-
-  std::vector<std::string> history_;
 };

@@ -215,14 +215,18 @@ ChessState::AttackTables ChessState::compute_attack_tables() {
   constexpr int kKingDeltas[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
                                      {0, 1},   {1, -1}, {1, 0},  {1, 1}};
   for (int sq = 0; sq < 64; ++sq) {
-    int r = sq / 8, f = sq % 8;
+    const int r = sq / 8;
+    const int f = sq % 8;
     for (const auto& d : kd) {
-      int nr = r + d[0], nf = f + d[1];
-      if (0 <= nr && nr < 8 && 0 <= nf && nf < 8)
+      const int nr = r + d[0];
+      const int nf = f + d[1];
+      if (0 <= nr && nr < 8 && 0 <= nf && nf < 8) {
         a.knight[sq] |= square_bb((nr * 8) + nf);
+      }
     }
     for (const auto& d : kKingDeltas) {
-      int nr = r + d[0], nf = f + d[1];
+      const int nr = r + d[0];
+      const int nf = f + d[1];
       if (0 <= nr && nr < 8 && 0 <= nf && nf < 8) {
         a.king[sq] |= square_bb((nr * 8) + nf);
       }
@@ -270,8 +274,8 @@ void ChessState::MakeMove(const ChessMove& m, MoveUndo& undo) {
   const int us = static_cast<int>(side_to_move_);
   const int them = 1 - us;
   const bool is_white = us == 0;
-  Bitboard from_bb = square_bb(m.from);
-  Bitboard to_bb = square_bb(m.to);
+  const Bitboard from_bb = square_bb(m.from);
+  const Bitboard to_bb = square_bb(m.to);
 
   undo = MoveUndo{};
   undo.old_castling_rights = castling_rights_;
@@ -455,7 +459,9 @@ ChessState ChessState::from_fen(std::string_view fen) {
     ++it;
   }
 
-  if (it != end) s.side_to_move_ = (*it == 'w') ? Color::kWhite : Color::kBlack;
+  if (it != end) {
+    s.side_to_move_ = (*it == 'w') ? Color::kWhite : Color::kBlack;
+  }
   ++it;
   if (it != end && *it == ' ') {
     ++it;
@@ -495,7 +501,9 @@ ChessState ChessState::from_fen(std::string_view fen) {
   } else {
     ++it;
   }
-  if (it != end && *it == ' ') ++it;
+  if (it != end && *it == ' ') {
+    ++it;
+  }
 
   int halfmove = 0;
   while (it != end && *it >= '0' && *it <= '9') {
@@ -503,7 +511,9 @@ ChessState ChessState::from_fen(std::string_view fen) {
     ++it;
   }
   s.halfmove_clock_ = halfmove;
-  if (it != end && *it == ' ') ++it;
+  if (it != end && *it == ' ') {
+    ++it;
+  }
 
   int fullmove = 0;
   while (it != end && *it >= '0' && *it <= '9') {
@@ -515,14 +525,17 @@ ChessState ChessState::from_fen(std::string_view fen) {
   return s;
 }
 
-std::string ChessState::to_fen() const {
+// https://www.chessprogramming.org/Forsyth-Edwards_Notation
+std::string ChessState::ToString() const {
   std::string fen;
 
   for (int rank = 7; rank >= 0; --rank) {
-    if (rank < 7) fen += '/';
+    if (rank < 7) {
+      fen += '/';
+    }
     int empty = 0;
     for (int file = 0; file < 8; ++file) {
-      int sq = rank * 8 + file;
+      const int sq = (rank * 8) + file;
       PieceType pt = piece_type_at(sq);
       if (pt == PieceType::kNone) {
         ++empty;
@@ -531,7 +544,7 @@ std::string ChessState::to_fen() const {
           fen += static_cast<char>('0' + empty);
           empty = 0;
         }
-        bool is_white = (colors_[0] & (Bitboard{1} << sq)) != 0;
+        const bool is_white = (colors_[0] & (Bitboard{1} << sq)) != 0;
         char c;
         switch (pt) {
           case PieceType::kPawn:
@@ -616,104 +629,9 @@ PieceType ChessState::piece_type_at(int sq) const {
   return PieceType::kNone;
 }
 
-const char* ChessState::to_unicode(int sq) const {
-  static constexpr std::array<const char*, 7> kWhiteUnicode = {
-      /* kNone   */ " ",
-      /* kPawn   */ "\u2659",
-      /* kKnight */ "\u2658",
-      /* kBishop */ "\u2657",
-      /* kRook   */ "\u2656",
-      /* kQueen  */ "\u2655",
-      /* kKing   */ "\u2654",
-  };
-  static constexpr std::array<const char*, 7> kBlackUnicode = {
-      /* kNone   */ " ",
-      /* kPawn   */ "\u265F",
-      /* kKnight */ "\u265E",
-      /* kBishop */ "\u265D",
-      /* kRook   */ "\u265C",
-      /* kQueen  */ "\u265B",
-      /* kKing   */ "\u265A",
-  };
-
-  const PieceType pt = piece_type_at(sq);
-  const bool is_white = (colors_[0] & square_bb(sq)) != 0;
-  return is_white ? kWhiteUnicode[static_cast<size_t>(pt)]
-                  : kBlackUnicode[static_cast<size_t>(pt)];
-}
-
-std::string ChessState::get_algebraic_notation(const ChessMove& move) const {
-  static constexpr std::array<char, 7> kPieceLetters = {'\0', '\0', 'N', 'B',
-                                                        'R',  'Q',  'K'};
-  std::string output;
-  output += kPieceLetters[static_cast<size_t>(piece_type_at(move.from))];
-  if (move.captured != PieceType::kNone) {
-    output += 'x';
-  }
-  output += static_cast<char>('a' + (move.to % 8));
-  output += std::to_string(1 + (move.to / 8));
-  return output;
-}
-
-void ChessState::RecordMove(const ChessMove& move) {
-  if (side_to_move_ == Color::kWhite) {
-    history_.push_back(get_algebraic_notation(move));
-  } else {
-    std::string& tmp = history_.back();
-    tmp.insert(tmp.length(), " ");
-    tmp.insert(tmp.length(), get_algebraic_notation(move));
-  }
-}
-
 bool ChessState::IsOver() const {
   ChessMove buf[ChessMove::kMaxMoves];
   return FillLegalMoves(buf, ChessMove::kMaxMoves) == 0;
-}
-
-std::string ChessState::ToString() const {
-  const std::string kCursorHome = "\x1B[H";
-  const std::string kEraseScreen = "\x1B[2J";
-  const std::string kForegroundBlack = "\x1B[30m";
-  const std::string kForegroundGray = "\x1B[38;5;240m";
-  const std::string kForegroundDefault = "\x1B[39m";
-  const std::string kBackgroundMagenta = "\x1B[45m";
-  const std::string kBackgroundWhite = "\x1B[47m";
-  const std::string kBackgroundDefault = "\x1B[49m";
-
-  std::string output = kEraseScreen + kCursorHome;
-  for (int row = 0; row < 9; ++row) {
-    const char rank = static_cast<char>('8' - row);
-    output += (row == 8 ? ' ' : rank);
-    output += ' ';
-    for (int col = 0; col < 8; ++col) {
-      const char file = static_cast<char>('a' + col);
-      if (row != 8) {
-        const int sq = (8 * (7 - row)) + col;
-        output +=
-            ((row + col) % 2 == 0) ? kBackgroundWhite : kBackgroundMagenta;
-        output += kForegroundBlack;
-        output += to_unicode(sq);
-      } else {
-        output += file;
-      }
-      output += ' ';
-    }
-    output += kBackgroundDefault;
-    output += kForegroundGray;
-    output += ' ';
-    for (auto move = static_cast<size_t>(row); move < history_.size();
-         move += 9) {
-      std::string move_str = std::to_string(move + 1);
-      move_str.insert(0, 3 - move_str.size(), ' ');
-      move_str += ". ";
-      move_str += history_[move];
-      move_str.insert(move_str.end(), 14 - move_str.size(), ' ');
-      output += move_str;
-    }
-    output += kForegroundDefault;
-    output += '\n';
-  }
-  return output;
 }
 
 std::optional<ChessMove> ChessState::Parse(const std::string& input) const {

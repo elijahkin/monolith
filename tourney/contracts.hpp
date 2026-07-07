@@ -34,6 +34,8 @@ concept GameState =
 
       { cs.IsOver() } -> std::same_as<bool>;
 
+      // Return a string representation of the game state, to be used for
+      // debugging and/or processing by some user interface.
       { cs.ToString() } -> std::same_as<std::string>;
 
       { cs.Parse(input) } -> std::same_as<std::optional<typename T::MoveT>>;

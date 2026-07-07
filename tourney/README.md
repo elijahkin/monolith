@@ -41,9 +41,6 @@ which does not.
   to use alpha-beta pruning.
 - Finally, we can then explore other avenues of improvement: transposition
   tables, quiescence search, iterative deepening, random optimal move selection.
-- Make `history_` a vector of moves instead of a vector of strings. Then, if
-  it's not _too_ expensive, we could use this to eliminate `RecordMove` (but
-  would require recording the move even if it's not yet selected).
 - Implement `RandomPlayer`, which selects uniformly from the set of possible
   moves.
 - Design a tournament and ELO system to have many agents compete against each
