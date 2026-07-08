@@ -1,11 +1,9 @@
-// Usage: bazel run //tourney:chess_benchmark
-
 #include <chrono>
 #include <cstddef>
 #include <print>
 
-#include "algorithms/perft.hpp"
-#include "games/chess.hpp"
+#include "../../algorithms/perft.hpp"
+#include "movegen.hpp"
 
 int main() {
   auto state = ChessState::initial_position();

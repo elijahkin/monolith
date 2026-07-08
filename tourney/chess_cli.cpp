@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "games/chess.hpp"
+#include "games/chess/movegen.hpp"
 #include "players.hpp"
 
 namespace {
@@ -229,7 +229,7 @@ int main() {
   int fullmove_number = 1;
 
   std::vector<std::unique_ptr<PlayerBase<ChessMove>>> agents;
-  agents.push_back(std::make_unique<HumanPlayer<ChessState>>(game));
+  agents.push_back(std::make_unique<StdinPlayer<ChessState>>(game));
   agents.push_back(std::make_unique<MinimaxPlayer<ChessState>>(
       game, 5, black_advantage_on_capture));
 

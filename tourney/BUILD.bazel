@@ -20,19 +20,10 @@ cc_library(
 )
 
 cc_binary(
-    name = "chess_benchmark",
-    srcs = ["chess_benchmark.cpp"],
-    deps = [
-        "//tourney/algorithms:perft",
-        "//tourney/games:chess",
-    ],
-)
-
-cc_binary(
     name = "chess_cli",
     srcs = ["chess_cli.cpp"],
     deps = [
         ":players",
-        "//tourney/games:chess",
+        "//tourney/games/chess:movegen",
     ],
 )

@@ -1,8 +1,8 @@
-#include "chess.hpp"
+#include "movegen.hpp"
 
 #include <string_view>
 
-#include "../algorithms/perft.hpp"
+#include "../../algorithms/perft.hpp"
 #include "gtest/gtest.h"
 
 // https://www.chessprogramming.org/Perft_Results

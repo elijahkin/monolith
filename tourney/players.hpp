@@ -20,11 +20,11 @@ class PlayerBase {
 };
 
 template <GameState State>
-class HumanPlayer final : public PlayerBase<typename State::MoveT> {
+class StdinPlayer final : public PlayerBase<typename State::MoveT> {
   using Move = typename State::MoveT;
 
  public:
-  explicit HumanPlayer(State& state) : state_(state) {}
+  explicit StdinPlayer(State& state) : state_(state) {}
 
   Move SelectMove() override {
     std::string input;

@@ -9,3 +9,6 @@ build --cxxopt=-Wall --cxxopt=-Wextra --cxxopt=-Wpedantic
 
 # Treat warnings as errors
 build --cxxopt=-Werror
+
+# Without disabling this we get linker errors on Debian
+build --features=-supports_start_end_lib
