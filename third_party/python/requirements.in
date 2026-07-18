@@ -1,0 +1,4 @@
+# Direct deps for monolith Python packages. Transitive closure is
+# auto-resolved by `bazel run //third_party/python:requirements.update`.
+torch==2.12.1
+pytest==9.1.1

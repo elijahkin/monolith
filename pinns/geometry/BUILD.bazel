@@ -1,0 +1,23 @@
+load("@pip_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+py_library(
+    name = "geometry",
+    srcs = [
+        "csg.py",
+        "domain.py",
+        "primitives.py",
+    ],
+    imports = [".."],
+    deps = [requirement("torch")],
+)
+
+py_test(
+    name = "geometry_test",
+    srcs = ["geometry_test.py"],
+    legacy_create_init = 0,
+    deps = [
+        ":geometry",
+        requirement("pytest"),
+    ],
+)
