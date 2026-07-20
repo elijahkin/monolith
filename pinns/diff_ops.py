@@ -117,4 +117,19 @@ class DifferentialOperator:
         x: torch.Tensor,
         **params: Union[float, torch.Tensor],
     ) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
+        fn = getattr(self, "_fn", None)
+        if fn is not None:
+            return fn(u, x, **params)
         raise NotImplementedError
+
+    @classmethod
+    def from_callable(
+        cls,
+        fn: Callable[
+            [torch.Tensor, torch.Tensor], Union[torch.Tensor, Dict[str, torch.Tensor]]
+        ],
+    ) -> "DifferentialOperator":
+        """Wraps fn(u, x, **params) -> Tensor | Dict[str, Tensor] as a DifferentialOperator."""
+        op = cls.__new__(cls)
+        op._fn = fn  # type: ignore[attr-defined]
+        return op
