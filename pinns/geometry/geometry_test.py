@@ -52,4 +52,4 @@ def test_compute_normal_via_autodiff():
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    raise SystemExit(pytest.main([__file__]))

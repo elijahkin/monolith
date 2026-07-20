@@ -1,0 +1,45 @@
+load("@pip_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+py_library(
+    name = "diff_ops",
+    srcs = [
+        "diff_ops.py",
+    ],
+    imports = ["."],
+    deps = [
+        requirement("torch"),
+    ],
+)
+
+py_test(
+    name = "diff_ops_test",
+    srcs = ["diff_ops_test.py"],
+    legacy_create_init = 0,
+    deps = [
+        ":diff_ops",
+        requirement("pytest"),
+    ],
+)
+
+py_library(
+    name = "boundary_conditions",
+    srcs = [
+        "boundary_conditions.py",
+    ],
+    imports = ["."],
+    deps = [
+        ":diff_ops",
+        requirement("torch"),
+    ],
+)
+
+py_test(
+    name = "boundary_conditions_test",
+    srcs = ["boundary_conditions_test.py"],
+    legacy_create_init = 0,
+    deps = [
+        ":boundary_conditions",
+        requirement("pytest"),
+    ],
+)
