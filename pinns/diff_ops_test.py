@@ -66,45 +66,31 @@ class NonlinearSchrodingerOperator(diff_ops.DifferentialOperator):
         u = psi_vector[:, 0:1]
         v = psi_vector[:, 1:2]
 
-        du_dxt = diff_ops.grad(u, xt, create_graph=True)
-        dv_dxt = diff_ops.grad(v, xt, create_graph=True)
-        du_dt = du_dxt[:, -1:]
-        dv_dt = dv_dxt[:, -1:]
-
-        lap_u = torch.zeros(xt.shape[0], 1, device=xt.device, dtype=xt.dtype)
-        lap_v = torch.zeros(xt.shape[0], 1, device=xt.device, dtype=xt.dtype)
-        for j in range(xt.shape[1] - 1):
-            d2u = torch.autograd.grad(
-                du_dxt[:, j],
-                xt,
-                grad_outputs=torch.ones_like(du_dxt[:, j]),
-                create_graph=True,
-                retain_graph=True,
-                allow_unused=True,
-            )[0]
-            if d2u is not None:
-                lap_u = lap_u + d2u[:, j : j + 1]
-
-            d2v = torch.autograd.grad(
-                dv_dxt[:, j],
-                xt,
-                grad_outputs=torch.ones_like(dv_dxt[:, j]),
-                create_graph=True,
-                retain_graph=True,
-                allow_unused=True,
-            )[0]
-            if d2v is not None:
-                lap_v = lap_v + d2v[:, j : j + 1]
+        spatial_axes = range(xt.shape[1] - 1)
+        lap_u = diff_ops.axis_laplacian(u, xt, axes=spatial_axes)
+        lap_v = diff_ops.axis_laplacian(v, xt, axes=spatial_axes)
+        du_dt = diff_ops.partial(u, xt, axis=-1)
+        dv_dt = diff_ops.partial(v, xt, axis=-1)
 
         psi_sq_mag = u**2 + v**2
 
-        res_real = -dv_dt + 0.5 * lap_u + self.gamma * psi_sq_mag * u
-        res_imag = du_dt + 0.5 * lap_v + self.gamma * psi_sq_mag * v
-
         return {
-            "real": res_real,
-            "imag": res_imag,
+            "real": -dv_dt + 0.5 * lap_u + self.gamma * psi_sq_mag * u,
+            "imag": du_dt + 0.5 * lap_v + self.gamma * psi_sq_mag * v,
         }
+
+
+class AllenCahnOperator(diff_ops.DifferentialOperator):
+    """Time-dependent Allen-Cahn equation: du/dt - mu * laplacian(u) - u + u^3 = 0."""
+
+    def __init__(self, mu: float = 1.0):
+        self.mu = mu
+
+    def __call__(self, u: torch.Tensor, xt: torch.Tensor, **params) -> torch.Tensor:
+        spatial_axes = range(xt.shape[1] - 1)
+        lap_u = diff_ops.axis_laplacian(u, xt, axes=spatial_axes)
+        du_dt = diff_ops.partial(u, xt, axis=-1)
+        return du_dt - self.mu * lap_u - u + u**3
 
 
 def test_nonlinear_poisson_operator():
@@ -149,6 +135,19 @@ def test_nonlinear_schrodinger_operator():
     res_fixed = op(psi_fixed, xt_fixed)
     torch.testing.assert_close(res_fixed["real"], torch.tensor([[3.0]]))
     torch.testing.assert_close(res_fixed["imag"], torch.tensor([[4.0]]))
+
+
+def test_allen_cahn_operator():
+    op = AllenCahnOperator(mu=2.0)
+    xt = torch.rand(10, 2, requires_grad=True)
+    u = xt[:, 0:1] ** 2 + xt[:, 1:2] ** 2
+    res = op(u, xt)
+    assert res.shape == (10, 1)
+
+    xt_fixed = torch.tensor([[1.0, 1.0]], requires_grad=True)
+    u_fixed = xt_fixed[:, 0:1] ** 2 + xt_fixed[:, 1:2] ** 2
+    res_fixed = op(u_fixed, xt_fixed)
+    torch.testing.assert_close(res_fixed, torch.tensor([[4.0]]))
 
 
 if __name__ == "__main__":

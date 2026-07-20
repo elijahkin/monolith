@@ -1,6 +1,6 @@
 """Differential calculus utilities and operator specification for BVPs."""
 
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Sequence, Union
 import torch
 
 
@@ -37,24 +37,56 @@ def grad(u: torch.Tensor, x: torch.Tensor, create_graph: bool = True) -> torch.T
         return torch.stack(jac, dim=1)
 
 
+def partial(u: torch.Tensor, x: torch.Tensor, axis: int) -> torch.Tensor:
+    """Computes du/dx_{axis} for a scalar field u along a single coordinate axis."""
+    if not u.requires_grad:
+        return torch.zeros(x.shape[0], 1, device=x.device, dtype=x.dtype)
+    g = torch.autograd.grad(
+        u,
+        x,
+        grad_outputs=torch.ones_like(u),
+        create_graph=True,
+        retain_graph=True,
+        allow_unused=True,
+    )[0]
+    if g is None:
+        return torch.zeros(x.shape[0], 1, device=x.device, dtype=x.dtype)
+    axis = axis % x.shape[1]
+    return g[:, axis : axis + 1]
+
+
+def second_partial(u: torch.Tensor, x: torch.Tensor, axis: int) -> torch.Tensor:
+    """Computes d^2u/dx_{axis}^2 for a scalar field u along a single coordinate axis."""
+    axis = axis % x.shape[1]
+    du_daxis = partial(u, x, axis)
+    if not du_daxis.requires_grad:
+        return torch.zeros_like(du_daxis)
+    g = torch.autograd.grad(
+        du_daxis,
+        x,
+        grad_outputs=torch.ones_like(du_daxis),
+        create_graph=True,
+        retain_graph=True,
+        allow_unused=True,
+    )[0]
+    if g is None:
+        return torch.zeros_like(du_daxis)
+    return g[:, axis : axis + 1]
+
+
+def axis_laplacian(
+    u: torch.Tensor, x: torch.Tensor, axes: Sequence[int]
+) -> torch.Tensor:
+    """Sum of second partials of u along the given axes (div in axis subset)."""
+    lap = torch.zeros(x.shape[0], 1, device=x.device, dtype=x.dtype)
+    for j in axes:
+        lap = lap + second_partial(u, x, j)
+    return lap
+
+
 def laplacian(u: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
     """Computes div(grad(u)) for a scalar field u."""
-    du_dx = grad(u, x, create_graph=True)
-    lap = torch.zeros(x.shape[0], device=x.device, dtype=x.dtype)
-    for j in range(x.shape[1]):
-        if not du_dx[:, j].requires_grad:
-            continue
-        g = torch.autograd.grad(
-            du_dx[:, j],
-            x,
-            grad_outputs=torch.ones_like(du_dx[:, j]),
-            create_graph=True,
-            retain_graph=True,
-            allow_unused=True,
-        )[0]
-        if g is not None:
-            lap = lap + g[:, j]
-    return lap.unsqueeze(-1)
+    return axis_laplacian(u, x, range(x.shape[1]))
 
 
 def divergence(u: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
